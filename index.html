@@ -1,104 +1,437 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Магазин Стикерпаков</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f8f8;
-            color: #333;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sticker Market</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        .container {
-            flex-grow: 1;
-            padding: 20px;
-            text-align: center;
-        }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f2f2f7;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-        h1 {
-            color: #555;
-            margin-bottom: 20px;
-        }
+    .content {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+    }
 
-        .sticker-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+    .page-content {
+      display: none;
+    }
 
-        .sticker-item {
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            padding: 10px;
-        }
+    .page-content.active {
+      display: block;
+    }
 
-        .sticker-item img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin-bottom: 5px;
-        }
+    .bottom-nav {
+      display: flex;
+      justify-content: space-around; /* This might be less relevant now with gap */
+      align-items: center; /* Aligns items vertically */
+      padding: 0 15px; /* Padding on the sides of the nav bar */
+      background-color: transparent; /* Transparent background for the bar itself */
+      border-top: none;
+      box-shadow: none;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+      overflow: hidden; /* Prevents content spill */
+      flex-shrink: 0; /* Prevents the nav bar from shrinking */
+      gap: 15px; /* Space between the buttons */
+    }
 
-        .sticker-item button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+    .bottom-nav button {
+      background-color: white;
+      border: none;
+      font-size: 12.5px; /* Text size inside buttons */
+      color: #333; /* Default text color */
+      flex: 1; /* Allows buttons to grow and fill space */
+      padding: 5px 0; /* Vertical padding inside buttons */
+      transition: background-color 0.2s, box-shadow 0.2s, z-index 0s;
+      border-top-left-radius: 20px; /* Rounded top corners */
+      border-top-right-radius: 20px;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      margin: 0; /* Reset default margins */
+      cursor: pointer;
+      position: relative; /* Needed for z-index */
+      z-index: 1; /* Default stacking order */
+      /* Added for icon+text layout */
+      display: flex; /* Using Flexbox for button content */
+      justify-content: center; /* Center content horizontally */
+      align-items: center; /* Center content vertically */
+    }
 
-        .bottom-navigation {
-            background-color: #eee;
-            display: flex;
-            justify-content: space-around;
-            padding: 15px 0;
-            border-top: 1px solid #ddd;
-        }
+    /* This rule seems unused as images are inside .nav-icon now */
+    /* .bottom-nav button img { ... } */
 
-        .nav-button {
-            flex: 1;
-            text-align: center;
-            text-decoration: none;
-            color: #555;
-            font-size: 14px;
-        }
+    .bottom-nav button:first-child {
+      margin-left: 0; /* No extra margin for the first button */
+    }
 
-        .nav-button.active {
-            color: #007bff;
-            font-weight: bold;
-        }
-    </style>
+    .bottom-nav button:last-child {
+      margin-right: 0; /* No extra margin for the last button */
+    }
+
+    .bottom-nav button:hover {
+      background-color: #e6f2ff; /* Light blue background on hover */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15); /* Slight shadow on hover */
+      z-index: 2; /* Bring hovered button slightly forward */
+    }
+
+    .bottom-nav button.active {
+      color: white; /* White text for active button */
+      font-weight: bold;
+      background-color: #007aff; /* Blue background for active button */
+      box-shadow: 0 2px 5px rgba(0, 122, 255, 0.3); /* Blue shadow for active */
+      z-index: 3; /* Bring active button to the front */
+    }
+
+    /* Container for icon and text inside button */
+    .nav-icon {
+      display: flex;
+      flex-direction: column; /* Stack icon and text vertically */
+      align-items: center; /* Center items horizontally */
+      gap: 5px; /* Space between icon and text */
+    }
+
+    /* Styling for the icons */
+    .nav-icon img {
+      width: 30px;
+      height: 30px;
+      transition: filter 1s; /* Smooth transition for filter */
+    }
+
+    /* Styling for the icon when button is active */
+    .bottom-nav button.active .nav-icon img {
+      filter: grayscale(100%) brightness(0.6);
+    }
+
+    /* --- Main Content Area Styles --- */
+    .sticker-section {
+      margin-bottom: 20px;
+    }
+
+    .sticker-title {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .sticker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .sticker-item {
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 8px;
+      text-align: center;
+    }
+
+    .sticker-item img {
+      width: 100%;
+      border-radius: 8px;
+      display: block; /* Prevent extra space below image */
+    }
+
+    .market-section { /* This style is now unused as market content is removed */
+      padding: 0;
+    }
+
+    .market-title { /* This style is now unused */
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    .sticker-list { /* This style is now unused */
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+    }
+
+    .sticker-card { /* This style is now unused */
+      background-color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 10px;
+      text-align: center;
+    }
+
+    .sticker-card img { /* This style is now unused */
+      width: 80%;
+      border-radius: 8px;
+      margin-bottom: 5px;
+    }
+
+    .collection-section {
+      padding: 0;
+    }
+
+    .collection-title {
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+
+    .my-stickers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .my-stickers img {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      display: block;
+    }
+
+    .empty-collection {
+      font-style: italic;
+      color: #777;
+      grid-column: 1 / -1; /* Span across all columns if grid is empty */
+      text-align: center;
+      padding: 20px;
+    }
+
+    /* --- Popup Styles --- */
+    .popup {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      background-color: white;
+      box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
+      padding: 25px 20px 20px 20px;
+      z-index: 1000;
+      transform: translateY(100%);
+      transition: transform 0.35s ease-out;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      text-align: center;
+    }
+
+    .popup.show {
+      transform: translateY(0);
+    }
+
+    .popup-content {
+        /* Optional: additional styling for content area */
+    }
+
+    .popup-emoji {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 15px;
+    }
+
+    .popup p {
+      font-size: 16px;
+      margin-bottom: 20px;
+      color: #555;
+    }
+
+    .popup-close {
+      background-color: #007aff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background-color 0.2s;
+    }
+    .popup-close:hover {
+        background-color: #0056b3;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.4);
+      z-index: 999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.35s ease-out, visibility 0s linear 0.35s;
+    }
+
+    .overlay.show {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.35s ease-out, visibility 0s linear 0s;
+    }
+
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Магазин Стикерпаков от DOGS</h1>
+  <div class="content">
+    <div id="nfts-content" class="page-content active">
+      <div class="sticker-section">
+        <div class="sticker-title">Featured Stickers</div>
         <div class="sticker-grid">
-            <div class="sticker-item">
-                <img src="placeholder.png" alt="Стикер 1">
-                <button>Купить</button>
-            </div>
-            <div class="sticker-item">
-                <img src="placeholder.png" alt="Стикер 2">
-                <button>Купить</button>
-            </div>
-            </div>
+          <div class="sticker-item"><img src="https://placekitten.com/200/200" alt="Sticker"></div>
+          <div class="sticker-item"><img src="https://placekitten.com/201/200" alt="Sticker"></div>
+          <div class="sticker-item"><img src="https://placekitten.com/202/200" alt="Sticker"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="bottom-navigation">
-        <a href="#" class="nav-button active">NFTs</a>
-        <a href="#" class="nav-button">Market</a>
-        <a href="#" class="nav-button">My collection</a>
+    <div id="collection-content" class="page-content">
+      <div class="collection-section">
+        <h1 class="collection-title">My Sticker Collection</h1>
+        <div class="my-stickers">
+          <p class="empty-collection">Your collection is currently empty.</p>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button onclick="showContent('nfts-content', this)" class="active">
+      <div class="nav-icon">
+        <img src="https://i.imgur.com/iLmlF6Z.png" alt="NFT">
+        <span>NFTs</span>
+      </div>
+    </button>
+    <button onclick="openPopup('market-popup', this)">
+      <div class="nav-icon">
+        <img src="https://i.imgur.com/hPLCOC8.png" alt="Market">
+        <span>Market</span>
+      </div>
+    </button>
+    <button onclick="showContent('collection-content', this)">
+      <div class="nav-icon">
+        <img src="https://i.imgur.com/7MLHK3x.png" alt="Collection">
+        <span>My Collection</span>
+      </div>
+    </button>
+  </div>
+
+  <div id="market-popup" class="popup">
+    <div class="popup-content">
+      <span class="popup-emoji">⛔</span>
+      <p>Эта страница пока недоступна.</p>
+      <button class="popup-close" onclick="closePopup('market-popup')">Закрыть</button>
+    </div>
+  </div>
+  <div id="popup-overlay" class="overlay" onclick="closePopup('market-popup')"></div>
+
+
+  <script>
+    // Closes all known popups
+    function closeAllPopups() {
+        const popupIds = ['market-popup']; // Add other popup IDs here if needed
+        popupIds.forEach(id => {
+            const popup = document.getElementById(id);
+            if (popup && popup.classList.contains('show')) {
+                closePopup(id);
+            }
+        });
+    }
+
+    // Shows specific page content
+    function showContent(contentId, clickedButton) {
+      closeAllPopups(); // Close any open popups first
+
+      const contentSections = document.querySelectorAll('.page-content');
+      const buttons = document.querySelectorAll('.bottom-nav button');
+
+      // Hide all content sections
+      contentSections.forEach(section => {
+        section.classList.remove('active');
+      });
+
+      // Deactivate all navigation buttons
+      buttons.forEach(button => {
+        button.classList.remove('active');
+      });
+
+      // Show the target content section
+      const targetContent = document.getElementById(contentId);
+      if(targetContent) {
+          targetContent.classList.add('active');
+      }
+
+      // Activate the clicked button
+      if(clickedButton) {
+          clickedButton.classList.add('active');
+      }
+    }
+
+    // Opens a specific popup
+    function openPopup(popupId, clickedButton) {
+      closeAllPopups(); // Close any other popups first
+
+      const popup = document.getElementById(popupId);
+      const overlay = document.getElementById('popup-overlay');
+      const buttons = document.querySelectorAll('.bottom-nav button');
+
+      if (popup && overlay) {
+        // Deactivate all nav buttons (popup doesn't correspond to a 'page')
+        buttons.forEach(button => {
+          button.classList.remove('active');
+        });
+
+        // Show overlay and popup
+        overlay.classList.add('show');
+        popup.classList.add('show');
+      }
+    }
+
+    // Closes a specific popup
+    function closePopup(popupId) {
+      const popup = document.getElementById(popupId);
+      const overlay = document.getElementById('popup-overlay');
+
+      if (popup && overlay) {
+        overlay.classList.remove('show');
+        popup.classList.remove('show');
+
+        // Optional: Re-activate the previously active button if needed.
+        // This requires storing the last active button state,
+        // or simply relying on the user clicking a nav button again.
+        // For simplicity, we'll let the user click a nav button to activate it.
+      }
+    }
+
+    // Ensure the initial state is correct on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const initialActiveButton = document.querySelector('.bottom-nav button.active');
+        if (initialActiveButton) {
+            // If an active button exists, ensure its content is shown
+            // (This is usually handled by the 'active' class in HTML already)
+            // Example: Find corresponding content ID and ensure it's active
+            // For simplicity, assuming HTML is correct with initial 'active' class.
+        } else {
+            // Fallback: If no button is active, activate the first one
+            const firstButton = document.querySelector('.bottom-nav button');
+            if (firstButton && firstButton.onclick.toString().includes('showContent')) {
+                // Extract contentId from the first button's onclick
+                const onclickString = firstButton.getAttribute('onclick');
+                const match = onclickString.match(/showContent\('([^']*)'/);
+                if (match && match[1]) {
+                    showContent(match[1], firstButton);
+                }
+            }
+        }
+    });
+
+  </script>
 </body>
 </html>
