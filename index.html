@@ -3,13 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Мини-приложение Telegram</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Магазин Стикерпаков</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            flex-grow: 1;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .sticker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .sticker-item {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            padding: 10px;
+        }
+
+        .sticker-item img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .sticker-item button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .bottom-navigation {
+            background-color: #eee;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0;
+            border-top: 1px solid #ddd;
+        }
+
+        .nav-button {
+            flex: 1;
+            text-align: center;
+            text-decoration: none;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .nav-button.active {
+            color: #007bff;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-    <h1>Привет из мини-приложения!</h1>
-    <button onclick="sendMessage()">Отправить сообщение</button>
+    <div class="container">
+        <h1>Магазин Стикерпаков от DOGS</h1>
+        <div class="sticker-grid">
+            <div class="sticker-item">
+                <img src="placeholder.png" alt="Стикер 1">
+                <button>Купить</button>
+            </div>
+            <div class="sticker-item">
+                <img src="placeholder.png" alt="Стикер 2">
+                <button>Купить</button>
+            </div>
+            </div>
+    </div>
 
-    <script src="script.js"></script>
+    <div class="bottom-navigation">
+        <a href="#" class="nav-button active">NFTs</a>
+        <a href="#" class="nav-button">Market</a>
+        <a href="#" class="nav-button">My collection</a>
+    </div>
 </body>
 </html>
