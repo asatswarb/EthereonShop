@@ -49,20 +49,20 @@
         .bottom-nav button:last-child { margin-right: 0; }
         .bottom-nav button:hover { background-color: #e6f2ff; box-shadow: 0 2px 5px rgba(0,0,0,0.15); z-index: 2; }
         .bottom-nav button.active {
-            color: white; font-weight: bold; background-color: #007aff;
+            color: white; background-color: #007aff;
             box-shadow: 0 2px 5px rgba(0, 122, 255, 0.3); z-index: 3;
         }
 
         .nav-icon { display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .nav-icon img { width: 30px; height: 30px; transition: filter 0.75s; }
-        .bottom-nav button:nth-child(1):not(.active) .nav-icon img { filter: grayscale(100%) brightness(1); }
-        .bottom-nav button:nth-child(2):not(.active) .nav-icon img { filter: grayscale(100%) brightness(1.10); }
-        .bottom-nav button:nth-child(3):not(.active) .nav-icon img { filter: grayscale(100%) brightness(1); }
+        .bottom-nav button:nth-child(1):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.75); }
+        .bottom-nav button:nth-child(2):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.85); }
+        .bottom-nav button:nth-child(3):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.75); }
         .bottom-nav button.active .nav-icon img { filter: none; }
 
         /* --- Main Content Area Styles --- */
         .sticker-section { margin-bottom: 20px; }
-        .sticker-title { font-size: 30px; margin-bottom: 10px; }
+        .sticker-title { font-size: 27.5px; font-weight: bold; margin-bottom: 10px; }
 
         /* Контейнер для горизонтального скролла/свайпа */
         #featured-sticker-container {
@@ -160,13 +160,13 @@
                 <div class="sticker-title">Featured Stickers</div>
                 <div class="sticker-grid" id="featured-sticker-container">
                     <div class="sticker-slide">
-                        <img src="https://i.imgur.com/tBkD6dW.jpeg" alt="Featured Sticker 1" draggable="false">
+                        <img src="https://i.imgur.com/tBkD6dW.jpeg" alt="Ethereon Exclusive" draggable="false">
                         <div class="sticker-creator-info">
                             <img src="https://i.imgur.com/ffHaWEc.jpeg" alt="Creator Avatar" class="creator-avatar" draggable="false">  <span class="creator-name">Ethereon Exclusive</span>
                         </div>
                     </div>
                     <div class="sticker-slide">
-                         <img src="https://i.imgur.com/jNGlO3B.jpeg" alt="Featured Sticker 2" draggable="false">
+                         <img src="https://i.imgur.com/jNGlO3B.jpeg" alt="Ion Treasury" draggable="false">
                          <div class="sticker-creator-info">
                             <img src="https://i.imgur.com/eYFLmb6.jpeg" alt="Creator Avatar" class="creator-avatar" draggable="false"> <span class="creator-name">Ion Treasury</span>
                          </div>
@@ -190,10 +190,10 @@
             <div class="nav-icon"> <img src="https://i.imgur.com/iLmlF6Z.png" alt="NFT" draggable="false"> <span>Ion Treasury</span> </div>
         </button>
         <button onclick="openPopup('market-popup', this)">
-            <div class="nav-icon"> <img src="https://i.imgur.com/14QjfkY.png" alt="Market" draggable="false"> <span>Market</span> </div>
+            <div class="nav-icon"> <img src="https://i.imgur.com/ByUAzFv.png" alt="Market" draggable="false"> <span>Market</span> </div>
         </button>
         <button onclick="showContent('collection-content', this)">
-            <div class="nav-icon"> <img src="https://i.imgur.com/7MLHK3x.png" alt="Collection" draggable="false"> <span>My Collection</span> </div>
+            <div class="nav-icon"> <img src="https://i.imgur.com/WvvEnks.png" alt="Collection" draggable="false"> <span>My Collection</span> </div>
         </button>
     </div>
 
