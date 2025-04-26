@@ -82,7 +82,7 @@
         }
 
         /* Стили для изображения внутри слайда */
-        #featured-sticker-container .sticker-slide img {
+        #featured-sticker-container .sticker-slide > img {
             width: 100%; height: auto; display: block; margin: 10px 0;
             border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
             pointer-events: none; /* Отключаем возможность перетаскивать саму картинку */
@@ -91,6 +91,30 @@
         /* Скрытие полосы прокрутки (визуально) */
         #featured-sticker-container::-webkit-scrollbar { display: none; }
         #featured-sticker-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* --- Стили для информации о создателе стикера (ДОБАВЛЕНО) --- */
+        .sticker-creator-info {
+            display: flex;         /* Располагает аватар и текст в ряд */
+            align-items: center;  /* Выравнивает их по вертикали по центру */
+            margin-top: 10px;      /* Отступ сверху от большого стикера */
+            padding: 0 5px;       /* Небольшой внутренний отступ слева/справа внутри блока */
+        }
+
+        .creator-avatar {
+            width: 50px;           /* Ширина аватара */
+            height: 50px;          /* Высота аватара */
+            border-radius: 50%;    /* Делает аватар круглым */
+            margin-right: 8px;     /* Отступ справа от аватара (между аватаром и текстом) */
+            object-fit: cover;     /* Гарантирует, что изображение покроет область, сохраняя пропорции */
+            flex-shrink: 0;        /* Предотвращает сжатие аватара, если текст длинный */
+        }
+
+        .creator-name {
+            font-size: 20px;       /* Размер шрифта для имени */
+            color: #000000;          /* Цвет текста (можно изменить) */
+            font-weight: 500;      /* Немного жирнее стандартного */
+        }
+        /* --- Конец добавленных стилей --- */
 
 
         /* --- Other Sections --- */
@@ -136,13 +160,19 @@
                 <div class="sticker-title">Featured Stickers</div>
                 <div class="sticker-grid" id="featured-sticker-container">
                     <div class="sticker-slide">
-                        <img src="https://i.imgur.com/95CxFa2.png" alt="Featured Sticker 1">
+                        <img src="https://i.imgur.com/iNjodRL.png" alt="Featured Sticker 1">
+                        <div class="sticker-creator-info">
+                            <img src="https://i.imgur.com/ffHaWEc.jpeg" alt="Creator Avatar" class="creator-avatar">  <span class="creator-name">Ethereon Exclusive</span>
+                        </div>
                     </div>
                     <div class="sticker-slide">
-                         <img src="https://i.imgur.com/ylBAS2u.jpeg" alt="Featured Sticker 2">
+                         <img src="https://i.imgur.com/zXWZs0t.jpeg" alt="Featured Sticker 2">
+                         <div class="sticker-creator-info">
+                            <img src="https://i.imgur.com/eYFLmb6.jpeg" alt="Creator Avatar" class="creator-avatar"> <span class="creator-name">Ion Treasury</span>
+                         </div>
                     </div>
                 </div>
-            </div>
+                </div>
         </div>
 
         <div id="collection-content" class="page-content">
@@ -185,7 +215,7 @@
                  const popup = document.getElementById(id);
                  if (popup && popup.classList.contains('show')) { closePopup(id); }
              });
-        }
+         }
         function showContent(contentId, clickedButton) {
              closeAllPopups();
              const contentSections = document.querySelectorAll('.page-content');
@@ -239,51 +269,51 @@
 
                  // --- ОБНОВЛЕННАЯ ЛОГИКА СНАППИНГА ---
                  const snapToNearestSlide = () => {
-                    const slides = slider.querySelectorAll('.sticker-slide');
-                    // Эта логика пока рассчитана ровно на 2 слайда.
-                    if (slides.length !== 2) {
-                        console.warn("Snap logic currently optimized for exactly 2 slides.");
-                        if (slides.length > 0) { // Fallback to old logic for > 2 slides
-                             const slideWidth = slides[0].offsetWidth;
-                             const currentScroll = slider.scrollLeft;
-                             let targetIndex = Math.round(currentScroll / slideWidth);
-                             targetIndex = Math.max(0, Math.min(targetIndex, slides.length - 1));
-                             const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
-                             slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
-                        }
-                        return;
-                    }
+                     const slides = slider.querySelectorAll('.sticker-slide');
+                     // Эта логика пока рассчитана ровно на 2 слайда.
+                     if (slides.length !== 2) {
+                         console.warn("Snap logic currently optimized for exactly 2 slides.");
+                         if (slides.length > 0) { // Fallback to old logic for > 2 slides
+                              const slideWidth = slides[0].offsetWidth;
+                              const currentScroll = slider.scrollLeft;
+                              let targetIndex = Math.round(currentScroll / slideWidth);
+                              targetIndex = Math.max(0, Math.min(targetIndex, slides.length - 1));
+                              const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
+                              slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+                         }
+                         return;
+                     }
 
-                    const slideWidth = slides[0].offsetWidth; // Ширина слайда
-                    const containerWidth = slider.offsetWidth; // Ширина видимой области
-                    const currentScroll = slider.scrollLeft; // Текущая прокрутка
+                     const slideWidth = slides[0].offsetWidth; // Ширина слайда
+                     const containerWidth = slider.offsetWidth; // Ширина видимой области
+                     const currentScroll = slider.scrollLeft; // Текущая прокрутка
 
-                    // Центр первого слайда (относительно начала slider)
-                    const center0 = slides[0].offsetLeft - slider.offsetLeft + slideWidth / 2;
-                    // Центр второго слайда (относительно начала slider)
-                    const center1 = slides[1].offsetLeft - slider.offsetLeft + slideWidth / 2;
+                     // Центр первого слайда (относительно начала slider)
+                     const center0 = slides[0].offsetLeft - slider.offsetLeft + slideWidth / 2;
+                     // Центр второго слайда (относительно начала slider)
+                     const center1 = slides[1].offsetLeft - slider.offsetLeft + slideWidth / 2;
 
-                    // Координата X средней точки МЕЖДУ центрами двух слайдов
-                    const midpointBetweenSlides = (center0 + center1) / 2;
+                     // Координата X средней точки МЕЖДУ центрами двух слайдов
+                     const midpointBetweenSlides = (center0 + center1) / 2;
 
-                    // Координата X центра видимой области контейнера (относительно начала slider)
-                    const viewportCenter = currentScroll + containerWidth / 2;
+                     // Координата X центра видимой области контейнера (относительно начала slider)
+                     const viewportCenter = currentScroll + containerWidth / 2;
 
-                    let targetIndex;
+                     let targetIndex;
 
-                    // Если центр видимой области левее средней точки между слайдами, цель - слайд 0
-                    if (viewportCenter < midpointBetweenSlides) {
-                        targetIndex = 0;
-                    } else { // Иначе (правее или на средней точке) - цель - слайд 1
-                        targetIndex = 1;
-                    }
+                     // Если центр видимой области левее средней точки между слайдами, цель - слайд 0
+                     if (viewportCenter < midpointBetweenSlides) {
+                         targetIndex = 0;
+                     } else { // Иначе (правее или на средней точке) - цель - слайд 1
+                         targetIndex = 1;
+                     }
 
-                    // Получаем целевую позицию для выравнивания по левому краю
-                    const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
+                     // Получаем целевую позицию для выравнивания по левому краю
+                     const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
 
-                    slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
-                };
-                // --- КОНЕЦ ОБНОВЛЕННОЙ ЛОГИКИ СНАППИНГА ---
+                     slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+                 };
+                 // --- КОНЕЦ ОБНОВЛЕННОЙ ЛОГИКИ СНАППИНГА ---
 
                 slider.addEventListener('mousedown', (e) => {
                     isDown = true;
