@@ -14,7 +14,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f2f2f7;
-            color: #333;
+            color: #000;
             display: flex;
             flex-direction: column;
             height: 100vh;
@@ -37,7 +37,7 @@
         }
 
         .bottom-nav button {
-            background-color: white; border: none; font-size: 12.5px; color: #333;
+            background-color: white; border: none; font-size: 12.5px; color: #000;
             flex: 1; padding: 5px 0; transition: background-color 0.2s, box-shadow 0.2s, z-index 0s;
             border-top-left-radius: 20px; border-top-right-radius: 20px;
             border-bottom-left-radius: 0; border-bottom-right-radius: 0;
@@ -160,18 +160,18 @@
                 <div class="sticker-title">Featured Stickers</div>
                 <div class="sticker-grid" id="featured-sticker-container">
                     <div class="sticker-slide">
-                        <img src="https://i.imgur.com/iNjodRL.png" alt="Featured Sticker 1">
+                        <img src="https://i.imgur.com/tBkD6dW.jpeg" alt="Featured Sticker 1" draggable="false">
                         <div class="sticker-creator-info">
-                            <img src="https://i.imgur.com/ffHaWEc.jpeg" alt="Creator Avatar" class="creator-avatar">  <span class="creator-name">Ethereon Exclusive</span>
+                            <img src="https://i.imgur.com/ffHaWEc.jpeg" alt="Creator Avatar" class="creator-avatar" draggable="false">  <span class="creator-name">Ethereon Exclusive</span>
                         </div>
                     </div>
                     <div class="sticker-slide">
-                         <img src="https://i.imgur.com/zXWZs0t.jpeg" alt="Featured Sticker 2">
+                         <img src="https://i.imgur.com/jNGlO3B.jpeg" alt="Featured Sticker 2" draggable="false">
                          <div class="sticker-creator-info">
-                            <img src="https://i.imgur.com/eYFLmb6.jpeg" alt="Creator Avatar" class="creator-avatar"> <span class="creator-name">Ion Treasury</span>
+                            <img src="https://i.imgur.com/eYFLmb6.jpeg" alt="Creator Avatar" class="creator-avatar" draggable="false"> <span class="creator-name">Ion Treasury</span>
                          </div>
                     </div>
-                </div>
+                </div> <div class="sticker-title">Best free ions</div>
                 </div>
         </div>
 
@@ -187,13 +187,13 @@
 
     <div class="bottom-nav">
          <button onclick="showContent('nfts-content', this)" class="active">
-            <div class="nav-icon"> <img src="https://i.imgur.com/iLmlF6Z.png" alt="NFT"> <span>Ion Treasury</span> </div>
+            <div class="nav-icon"> <img src="https://i.imgur.com/iLmlF6Z.png" alt="NFT" draggable="false"> <span>Ion Treasury</span> </div>
         </button>
         <button onclick="openPopup('market-popup', this)">
-            <div class="nav-icon"> <img src="https://i.imgur.com/14QjfkY.png" alt="Market"> <span>Market</span> </div>
+            <div class="nav-icon"> <img src="https://i.imgur.com/14QjfkY.png" alt="Market" draggable="false"> <span>Market</span> </div>
         </button>
         <button onclick="showContent('collection-content', this)">
-            <div class="nav-icon"> <img src="https://i.imgur.com/7MLHK3x.png" alt="Collection"> <span>My Collection</span> </div>
+            <div class="nav-icon"> <img src="https://i.imgur.com/7MLHK3x.png" alt="Collection" draggable="false"> <span>My Collection</span> </div>
         </button>
     </div>
 
@@ -324,14 +324,6 @@
                     slider.style.scrollBehavior = 'auto';
                 });
 
-                slider.addEventListener('mouseleave', () => {
-                    if (!isDown) return;
-                    if (isDragging) { snapToNearestSlide(); }
-                    isDown = false;
-                    slider.classList.remove('grabbing');
-                    slider.style.scrollBehavior = 'smooth';
-                });
-
                 window.addEventListener('mouseup', () => {
                     if (!isDown) return;
                     isDown = false;
@@ -361,18 +353,19 @@
                     slider.style.scrollBehavior = 'auto';
                 }, { passive: true });
 
-                slider.addEventListener('touchend', () => {
-                    if (!isDown) return;
+                window.addEventListener('touchend', () => {
+                    if (!isDown || !slider.contains(event.target) && !isDragging) return;
                     isDown = false;
                     slider.style.scrollBehavior = 'smooth';
-                    if (isDragging) { snapToNearestSlide(); }
+                    if (isDragging) {
+                        snapToNearestSlide();
+                    }
                 });
 
-                slider.addEventListener('touchcancel', () => {
+                window.addEventListener('touchcancel', () => {
                     if (!isDown) return;
                     isDown = false;
                     slider.style.scrollBehavior = 'smooth';
-                    // Можно добавить snapToNearestSlide() и здесь
                 });
 
                 window.addEventListener('touchmove', (e) => {
