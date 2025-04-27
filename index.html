@@ -56,9 +56,9 @@
 
         .nav-icon { display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .nav-icon img { width: 30px; height: 30px; transition: filter 0.75s; }
-        .bottom-nav button:nth-child(1):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.75); }
-        .bottom-nav button:nth-child(2):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.85); }
-        .bottom-nav button:nth-child(3):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.75); }
+        .bottom-nav button:nth-child(1):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.8); }
+        .bottom-nav button:nth-child(2):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.9); }
+        .bottom-nav button:nth-child(3):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.8); }
         .bottom-nav button.active .nav-icon img { filter: none; }
 
         /* --- Main Content Area Styles --- */
@@ -134,17 +134,20 @@
             transform: translateY(100%); transition: transform 0.35s ease-out;
             border-top-left-radius: 20px; border-top-right-radius: 20px;
             text-align: center;
+            height: 425px;
         }
         .popup.show { transform: translateY(0); }
         .popup-content { /* Optional styling */ }
-        .popup-emoji { font-size: 48px; display: block; margin-bottom: 15px; }
-        .popup p { font-size: 16px; margin-bottom: 20px; color: #555; }
+        .popup p { font-size: 16px; margin-bottom: 1px; color: #7f7f7f; font-weight: normal; }
+        .popup p.popup-title { font-size: 27.5px; margin-bottom: -5px; color: #000; font-weight: 550; }
+        .popup p.popup-unavailable { font-size: 27.5px; margin-bottom: -5px; color: #000; font-weight: 550; margin-top: 0px; margin-bottom: 10px;}
         .popup-close {
             background-color: #007aff; color: white; border: none;
-            padding: 10px 20px; border-radius: 8px; cursor: pointer;
+            padding: 15px 200px; border-radius: 8px; cursor: pointer;
             font-size: 15px; transition: background-color 0.2s;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             font-weight: 550;
+            margin-top: 30px;
         }
         .popup-close:hover { background-color: #0056b3; }
 
@@ -171,7 +174,7 @@
     <div class="content">
         <div id="nfts-content" class="page-content active">
             <div class="sticker-section">
-                <div class="sticker-title">Stickers collections</div>
+                <div class="sticker-title">Ethereon collections</div>
                 <div class="sticker-grid" id="featured-sticker-container">
                     <div class="sticker-slide">
                         <img src="https://i.imgur.com/tBkD6dW.jpeg" alt="Ethereon Exclusive" draggable="false">
@@ -192,6 +195,7 @@
                 <p class="no-ions-message">No free ions available</p>
             </div>
             <div class="sticker-section">
+                <div class="sticker-title">Unique Skills</div>
                 <div class="sticker-title">Ion Crystals</div>
             </div>
         </div>
@@ -220,13 +224,15 @@
 
     <div id="market-popup" class="popup">
         <div class="popup-content">
-            <span class="popup-emoji">⛔</span>
-            <p>Эта страница пока недоступна.</p>
-            <button class="popup-close" onclick="closePopup('market-popup')">Закрыть</button>
+            <img src="https://i.imgur.com/Hd1v5dY.gif" alt="Недоступно" class="popup-gif" style="width: 115px; height: 115px; display: block; margin: 0 auto 15px auto;">
+            <p class="popup-title">Market Temporarily</p>
+            <p class="popup-unavailable">Unavailable</p>
+            <p>You can't sell unique ions right now.</p>
+            <p>Please try again later.</p>
+            <button class="popup-close" onclick="closePopup('market-popup')">Got it</button>
         </div>
     </div>
     <div id="popup-overlay" class="overlay" onclick="closePopup('market-popup')"></div>
-
 
     <script>
         // --- Старый JS код ---
