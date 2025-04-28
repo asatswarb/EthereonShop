@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Sticker Market</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/> <title>Sticker Market</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -25,6 +25,7 @@
 
         .content {
             flex: 1; padding: 16px; overflow-y: auto; position: relative;
+             -webkit-overflow-scrolling: touch;
         }
 
         .page-content { display: none; }
@@ -35,6 +36,7 @@
             padding: 0 15px; background-color: transparent; border-top: none;
             box-shadow: none; border-top-left-radius: 0; border-top-right-radius: 0;
             overflow: hidden; flex-shrink: 0; gap: 15px;
+            padding-bottom: env(safe-area-inset-bottom, 10px); /* Отступ для iPhone */
         }
 
         .bottom-nav button {
@@ -44,6 +46,7 @@
             border-bottom-left-radius: 0; border-bottom-right-radius: 0;
             margin: 0; cursor: pointer; position: relative; z-index: 1;
             display: flex; justify-content: center; align-items: center;
+            height: 60px;
         }
 
         .bottom-nav button:first-child { margin-left: 0; }
@@ -65,94 +68,94 @@
         .sticker-section { margin-bottom: 20px; }
         .sticker-title { font-size: 25px; margin-bottom: 10px; }
 
-        /* Контейнер для горизонтального скролла/свайпа */
         #featured-sticker-container {
             display: flex; overflow-x: auto;
             width: 100%; padding-bottom: 10px; -webkit-overflow-scrolling: touch;
             list-style: none; padding-left: 0; margin-bottom: 20px;
             cursor: grab;
-            scroll-behavior: smooth; /* Поведение по умолчанию - плавное */
+            /* ОСТАВЛЯЕМ СТАРЫЙ scroll-behavior */
+            scroll-behavior: smooth;
         }
         #featured-sticker-container.grabbing { cursor: grabbing; }
-
-
-        /* Стили для отдельного слайда */
         .sticker-slide {
             flex: 0 0 85%;
             box-sizing: border-box; padding: 0 8px; position: relative;
         }
-
-        /* Стили для изображения внутри слайда */
         #featured-sticker-container .sticker-slide > img {
             width: 100%; height: auto; display: block; margin: 10px 0;
             border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-            pointer-events: none; /* Отключаем возможность перетаскивать саму картинку */
+            pointer-events: none;
         }
-
-        /* Скрытие полосы прокрутки (визуально) */
         #featured-sticker-container::-webkit-scrollbar { display: none; }
         #featured-sticker-container { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* --- Стили для информации о создателе стикера (ДОБАВЛЕНО) --- */
-        .sticker-creator-info {
-            display: flex;         /* Располагает аватар и текст в ряд */
-            align-items: center;  /* Выравнивает их по вертикали по центру */
-            margin-top: 10px;      /* Отступ сверху от большого стикера */
-            padding: 0 5px;       /* Небольшой внутренний отступ слева/справа внутри блока */
+        .sticker-creator-info { /* Стили создателя стикера */
+            display: flex; align-items: center;
+            margin-top: 10px; padding: 0 5px;
         }
-
         .creator-avatar {
-            width: 50px;           /* Ширина аватара */
-            height: 50px;          /* Высота аватара */
-            border-radius: 50%;    /* Делает аватар круглым */
-            margin-right: 8px;     /* Отступ справа от аватара (между аватаром и текстом) */
-            object-fit: cover;     /* Гарантирует, что изображение покроет область, сохраняя пропорции */
-            flex-shrink: 0;        /* Предотвращает сжатие аватара, если текст длинный */
+            width: 50px; height: 50px; border-radius: 50%;
+            margin-right: 8px; object-fit: cover; flex-shrink: 0;
         }
-
         .creator-name {
-            font-size: 20px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: 550;
-            color: #000000;
+            font-size: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550; color: #000000;
         }
-        /* --- Конец добавленных стилей --- */
 
-
-        /* --- Other Sections --- */
+        /* --- Collection / Profile Section Styles --- */
         .collection-section { padding: 0; }
-        .collection-title { font-size: 24px; margin-bottom: 15px; }
-        .my-stickers { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; }
+        .collection-title { font-size: 24px; margin-bottom: 15px; text-align: center; } /* Центрируем заголовок */
+        .my-stickers { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-top: 15px; }
         .my-stickers img { width: 100%; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: block; }
-        .empty-collection { font-style: Segoe UI; color: #777; grid-column: 1 / -1; text-align: center; padding: 20px; }
+
+        /* 3. Стили для аватара пользователя - ДОБАВЛЕНО */
+        .user-profile-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px; /* Уменьшил отступ */
+            padding: 10px 0;
+        }
+        .profile-avatar {
+            width: 100px; /* Сделал чуть меньше */
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ccc; /* Простая серая рамка */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Легкая тень */
+            background-color: #eee; /* Фон на случай, если фото нет */
+            /* Запрет выделения/перетаскивания */
+            user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+            pointer-events: none;
+        }
+        /* Убираем стиль для .empty-collection, т.к. элемента больше нет */
+        /* .empty-collection { ... } */
+
 
         /* --- Popup Styles --- */
+        /* Стили попапа остаются без изменений */
         .popup {
             position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
             background-color: white; box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
-            padding: 25px 20px 20px 20px; z-index: 1000;
+            padding: 25px 20px calc(env(safe-area-inset-bottom, 20px) + 10px) 20px;
+            z-index: 1000;
             transform: translateY(100%); transition: transform 0.35s ease-out;
             border-top-left-radius: 20px; border-top-right-radius: 20px;
             text-align: center;
-            height: 425px;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         .popup.show { transform: translateY(0); }
-        .popup-content { /* Optional styling */ }
+        .popup-content { padding-bottom: 10px; }
         .popup p { font-size: 16px; margin-bottom: 1px; color: #7f7f7f; font-weight: normal; }
         .popup p.popup-title { font-size: 27.5px; margin-bottom: -5px; color: #000; font-weight: 550; }
-        .popup p.popup-unavailable { font-size: 27.5px; margin-bottom: -5px; color: #000; font-weight: 550; margin-top: 0px; margin-bottom: 10px;}
+        .popup p.popup-unavailable { font-size: 27.5px; color: #000; font-weight: 550; margin-top: 0px; margin-bottom: 10px;}
         .popup-close {
             background-color: #007aff; color: white; border: none;
-            width: 100%;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 15px; transition: background-color 0.2s;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: 550;
-            margin-top: 30px;
-            border-radius: 8px;
+            width: 100%; height: 50px; display: flex; align-items: center;
+            justify-content: center; font-size: 15px; transition: background-color 0.2s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 550;
+            margin-top: 30px; border-radius: 10px; cursor: pointer;
         }
         .popup-close:hover { background-color: #0056b3; }
 
@@ -164,21 +167,17 @@
         }
         .overlay.show { opacity: 1; visibility: visible; transition: opacity 0.35s ease-out, visibility 0s linear 0s; }
 
-        .no-ions-message {
+        .no-ions-message { /* Стили для "нет ионов" */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: 550;
-            text-align: center;
-            font-size: 20px;
-            color: #6c757d;
-            margin-top: 15px;
-            margin-bottom: 20px;
+            font-weight: 550; text-align: center; font-size: 20px;
+            color: #6c757d; margin-top: 15px; margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <div class="content">
         <div id="nfts-content" class="page-content active">
-            <div class="sticker-section">
+           <div class="sticker-section">
                 <div class="sticker-title">Ethereon collections</div>
                 <div class="sticker-grid" id="featured-sticker-container">
                     <div class="sticker-slide">
@@ -201,35 +200,36 @@
             </div>
             <div class="sticker-section">
                 <div class="sticker-title">Unique Skills</div>
-                <div class="sticker-title">Ion Crystals</div>
-            </div>
+                </div>
+             <div class="sticker-section">
+                 <div class="sticker-title">Ion Crystals</div>
+                 </div>
         </div>
 
         <div id="collection-content" class="page-content">
             <div class="collection-section">
-                <h1 class="collection-title">My Sticker Collection</h1>
+                <h1 class="collection-title">My Profile</h1> <div class="user-profile-container">
+                   <img id="user-avatar" class="profile-avatar" alt="User Avatar" src="" draggable="false"> </div>
                 <div class="my-stickers">
-                    <p class="empty-collection">Your collection is currently empty.</p>
-                </div>
+                    </div>
             </div>
         </div>
     </div>
 
     <div class="bottom-nav">
          <button onclick="showContent('nfts-content', this)" class="active">
-            <div class="nav-icon"> <img src="https://i.imgur.com/iLmlF6Z.png" alt="NFT" draggable="false"> <span>Ion Treasury</span> </div>
-        </button>
-        <button onclick="openPopup('market-popup', this)">
-            <div class="nav-icon"> <img src="https://i.imgur.com/ByUAzFv.png" alt="Market" draggable="false"> <span>Market</span> </div>
-        </button>
-        <button onclick="showContent('collection-content', this)">
-            <div class="nav-icon"> <img src="https://i.imgur.com/WvvEnks.png" alt="Collection" draggable="false"> <span>My Collection</span> </div>
-        </button>
+             <div class="nav-icon"> <img src="https://i.imgur.com/iLmlF6Z.png" alt="NFT" draggable="false"> <span>Ion Treasury</span> </div>
+         </button>
+         <button onclick="openPopup('market-popup', this)">
+             <div class="nav-icon"> <img src="https://i.imgur.com/m5BKFIZ.png" alt="Market" draggable="false"> <span>Market</span> </div>
+         </button>
+         <button onclick="showContent('collection-content', this)">
+             <div class="nav-icon"> <img src="https://i.imgur.com/WvvEnks.png" alt="Collection" draggable="false"> <span>My Profile</span> </div> </button>
     </div>
 
     <div id="market-popup" class="popup">
         <div class="popup-content">
-            <img src="https://i.imgur.com/Hd1v5dY.gif" alt="Недоступно" class="popup-gif" style="width: 115px; height: 115px; display: block; margin: 0 auto 15px auto;">
+            <img src="https://i.imgur.com/Hd1v5dY.gif" alt="Unavailable" class="popup-gif" style="width: 115px; height: 115px; display: block; margin: 0 auto 15px auto;" draggable="false">
             <p class="popup-title">Market Temporarily</p>
             <p class="popup-unavailable">Unavailable</p>
             <p>You can't sell unique ions right now.</p>
@@ -240,58 +240,113 @@
     <div id="popup-overlay" class="overlay" onclick="closePopup('market-popup')"></div>
 
     <script>
-        // --- Старый JS код ---
+        // --- Старые функции управления попапами и контентом (без изменений) ---
         function closeAllPopups() {
-             const popupIds = ['market-popup'];
-             popupIds.forEach(id => {
-                 const popup = document.getElementById(id);
-                 if (popup && popup.classList.contains('show')) { closePopup(id); }
-             });
+            const popupIds = ['market-popup'];
+            popupIds.forEach(id => {
+                const popup = document.getElementById(id);
+                if (popup && popup.classList.contains('show')) { closePopup(id); }
+            });
          }
         function showContent(contentId, clickedButton) {
-             closeAllPopups();
-             const contentSections = document.querySelectorAll('.page-content');
-             const buttons = document.querySelectorAll('.bottom-nav button');
-             contentSections.forEach(section => { section.classList.remove('active'); });
-             buttons.forEach(button => { button.classList.remove('active'); });
-             const targetContent = document.getElementById(contentId);
-             if(targetContent) { targetContent.classList.add('active'); }
-             if(clickedButton) { clickedButton.classList.add('active'); }
+            closeAllPopups();
+            const contentSections = document.querySelectorAll('.page-content');
+            const buttons = document.querySelectorAll('.bottom-nav button');
+            contentSections.forEach(section => { section.classList.remove('active'); });
+            buttons.forEach(button => { button.classList.remove('active'); });
+            const targetContent = document.getElementById(contentId);
+            if(targetContent) { targetContent.classList.add('active'); }
+            if(clickedButton) { clickedButton.classList.add('active'); }
          }
-        function openPopup(popupId, clickedButton) {
-             closeAllPopups();
-             const popup = document.getElementById(popupId);
-             const overlay = document.getElementById('popup-overlay');
-             const buttons = document.querySelectorAll('.bottom-nav button');
-             if (popup && overlay) {
-                 buttons.forEach(button => { button.classList.remove('active'); });
-                 overlay.classList.add('show');
-                 popup.classList.add('show');
-             }
-         }
-        function closePopup(popupId) {
+        function openPopup(popupId) { /* ... без изменений ... */
+            const popup = document.getElementById(popupId);
+            const overlay = document.getElementById('popup-overlay');
+            if (popup && overlay) {
+                overlay.classList.add('show');
+                popup.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        function closePopup(popupId) { /* ... без изменений ... */
              const popup = document.getElementById(popupId);
              const overlay = document.getElementById('popup-overlay');
              if (popup && overlay) {
                  overlay.classList.remove('show');
                  popup.classList.remove('show');
+                 document.body.style.overflow = 'hidden';
              }
-         }
+        }
 
-        // --- Код инициализации и Drag-to-scroll ЛОГИКА ---
+        // --- Инициализация и основная логика ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Код инициализации активной кнопки/контента
+
+            // 4. ЛОГИКА ДЛЯ TELEGRAM AVATAR - ДОБАВЛЕНО
+            const tg = window.Telegram.WebApp; // Получаем объект WebApp
+
+            function displayUserInfo() {
+                 try {
+                     const user = tg.initDataUnsafe?.user;
+                     const avatarElement = document.getElementById('user-avatar');
+                     const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png'; // URL дефолтной картинки
+
+                     if (avatarElement) {
+                         if (user?.photo_url) {
+                             avatarElement.src = user.photo_url;
+                         } else {
+                             avatarElement.src = defaultAvatar;
+                             console.log('User photo URL not available.');
+                         }
+                         avatarElement.alt = user ? `${user.first_name || ''} ${user.last_name || ''}'s Avatar`.trim() : 'User Avatar';
+                     } else {
+                         console.error('Avatar element (#user-avatar) not found.');
+                     }
+                 } catch (error) {
+                     console.error('Error accessing Telegram user data:', error);
+                     const avatarElement = document.getElementById('user-avatar');
+                     if (avatarElement) {
+                         avatarElement.src = defaultAvatar; // Ставим дефолт и при ошибке
+                     }
+                 }
+             }
+
+            if (tg) { // Проверка, что объект tg существует
+                 tg.ready();
+                 displayUserInfo(); // Вызываем функцию для отображения авы
+                 tg.expand();
+            } else {
+                 console.error('Telegram WebApp script not loaded or object not found.');
+                 // Ставим дефолтную аву, если ТГ объект не найден
+                 const avatarElement = document.getElementById('user-avatar');
+                 const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
+                 if (avatarElement) { avatarElement.src = defaultAvatar; }
+             }
+            // КОНЕЦ ЛОГИКИ ДЛЯ TELEGRAM AVATAR
+
+            // Код инициализации активной кнопки/контента (без изменений)
             const initialActiveButton = document.querySelector('.bottom-nav button.active');
             if (!initialActiveButton) {
                 const firstButton = document.querySelector('.bottom-nav button');
-                if (firstButton && firstButton.onclick.toString().includes('showContent')) {
+                 if (firstButton && firstButton.getAttribute('onclick')?.includes('showContent')) {
                     const onclickString = firstButton.getAttribute('onclick');
                     const match = onclickString.match(/showContent\('([^']*)'/);
-                    if (match && match[1]) { showContent(match[1], firstButton); }
+                    if (match && match[1]) {
+                        showContent(match[1], firstButton);
+                    }
+                } else {
+                    const firstContentButton = document.querySelector('.bottom-nav button[onclick*="showContent"]');
+                     if (firstContentButton) {
+                         const onclickString = firstContentButton.getAttribute('onclick');
+                         const match = onclickString.match(/showContent\('([^']*)'/);
+                         if (match && match[1]) { showContent(match[1], firstContentButton); }
+                     }
                 }
+            } else {
+                const currentContentId = initialActiveButton.getAttribute('onclick').match(/showContent\('([^']*)'/)[1];
+                showContent(currentContentId, initialActiveButton);
             }
 
-            // --- Drag-to-scroll и Snap-on-Release ЛОГИКА ---
+
+            // --- СТАРАЯ ЛОГИКА Drag-to-scroll и Snap-on-Release (БЕЗ ИЗМЕНЕНИЙ) ---
             const slider = document.getElementById('featured-sticker-container');
             if (slider) {
                 let isDown = false;
@@ -299,53 +354,51 @@
                 let scrollLeft;
                 let isDragging = false;
 
-                 // --- ОБНОВЛЕННАЯ ЛОГИКА СНАППИНГА ---
-                 const snapToNearestSlide = () => {
-                     const slides = slider.querySelectorAll('.sticker-slide');
-                     // Эта логика пока рассчитана ровно на 2 слайда.
-                     if (slides.length !== 2) {
-                         console.warn("Snap logic currently optimized for exactly 2 slides.");
-                         if (slides.length > 0) { // Fallback to old logic for > 2 slides
-                              const slideWidth = slides[0].offsetWidth;
-                              const currentScroll = slider.scrollLeft;
-                              let targetIndex = Math.round(currentScroll / slideWidth);
-                              targetIndex = Math.max(0, Math.min(targetIndex, slides.length - 1));
-                              const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
-                              slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
-                         }
-                         return;
-                     }
+                const snapToNearestSlide = () => {
+                    const slides = slider.querySelectorAll('.sticker-slide');
+                    // Эта логика пока рассчитана ровно на 2 слайда.
+                    if (slides.length !== 2) {
+                        console.warn("Snap logic currently optimized for exactly 2 slides.");
+                        if (slides.length > 0) { // Fallback to old logic for > 2 slides
+                            const slideWidth = slides[0].offsetWidth;
+                            const currentScroll = slider.scrollLeft;
+                            let targetIndex = Math.round(currentScroll / slideWidth);
+                            targetIndex = Math.max(0, Math.min(targetIndex, slides.length - 1));
+                            const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
+                            slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+                        }
+                        return;
+                    }
 
-                     const slideWidth = slides[0].offsetWidth; // Ширина слайда
-                     const containerWidth = slider.offsetWidth; // Ширина видимой области
-                     const currentScroll = slider.scrollLeft; // Текущая прокрутка
+                    const slideWidth = slides[0].offsetWidth; // Ширина слайда
+                    const containerWidth = slider.offsetWidth; // Ширина видимой области
+                    const currentScroll = slider.scrollLeft; // Текущая прокрутка
 
-                     // Центр первого слайда (относительно начала slider)
-                     const center0 = slides[0].offsetLeft - slider.offsetLeft + slideWidth / 2;
-                     // Центр второго слайда (относительно начала slider)
-                     const center1 = slides[1].offsetLeft - slider.offsetLeft + slideWidth / 2;
+                    // Центр первого слайда (относительно начала slider)
+                    const center0 = slides[0].offsetLeft - slider.offsetLeft + slideWidth / 2;
+                    // Центр второго слайда (относительно начала slider)
+                    const center1 = slides[1].offsetLeft - slider.offsetLeft + slideWidth / 2;
 
-                     // Координата X средней точки МЕЖДУ центрами двух слайдов
-                     const midpointBetweenSlides = (center0 + center1) / 2;
+                    // Координата X средней точки МЕЖДУ центрами двух слайдов
+                    const midpointBetweenSlides = (center0 + center1) / 2;
 
-                     // Координата X центра видимой области контейнера (относительно начала slider)
-                     const viewportCenter = currentScroll + containerWidth / 2;
+                    // Координата X центра видимой области контейнера (относительно начала slider)
+                    const viewportCenter = currentScroll + containerWidth / 2;
 
-                     let targetIndex;
+                    let targetIndex;
 
-                     // Если центр видимой области левее средней точки между слайдами, цель - слайд 0
-                     if (viewportCenter < midpointBetweenSlides) {
-                         targetIndex = 0;
-                     } else { // Иначе (правее или на средней точке) - цель - слайд 1
-                         targetIndex = 1;
-                     }
+                    // Если центр видимой области левее средней точки между слайдами, цель - слайд 0
+                    if (viewportCenter < midpointBetweenSlides) {
+                        targetIndex = 0;
+                    } else { // Иначе (правее или на средней точке) - цель - слайд 1
+                        targetIndex = 1;
+                    }
 
-                     // Получаем целевую позицию для выравнивания по левому краю
-                     const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
+                    // Получаем целевую позицию для выравнивания по левому краю
+                    const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
 
-                     slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
-                 };
-                 // --- КОНЕЦ ОБНОВЛЕННОЙ ЛОГИКИ СНАППИНГА ---
+                    slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+                };
 
                 slider.addEventListener('mousedown', (e) => {
                     isDown = true;
@@ -373,7 +426,7 @@
                     slider.scrollLeft = scrollLeft - walk;
                 });
 
-                // --- Обработка Touch событий ---
+                // --- Обработка Touch событий (СТАРАЯ) ---
                 let touchStartX = 0;
                 let touchScrollLeft = 0;
 
@@ -385,19 +438,30 @@
                     slider.style.scrollBehavior = 'auto';
                 }, { passive: true });
 
-                window.addEventListener('touchend', () => {
-                    if (!isDown || !slider.contains(event.target) && !isDragging) return;
+                window.addEventListener('touchend', (event) => { // Добавил event
+                    // Проверка стала чуть надежнее, но логика та же
+                    if (!isDown) return;
+                    // Проверяем, был ли драг или было ли отпускание над слайдером
+                    let touchendOnSlider = slider.contains(event.target);
+                    if (!isDragging && !touchendOnSlider && event.target !== slider) return;
+
+
                     isDown = false;
                     slider.style.scrollBehavior = 'smooth';
                     if (isDragging) {
                         snapToNearestSlide();
                     }
+                     // Сбрасываем isDragging после проверки
+                     // isDragging = false; // Лучше сбрасывать в touchstart/mousedown
                 });
 
                 window.addEventListener('touchcancel', () => {
                     if (!isDown) return;
                     isDown = false;
                     slider.style.scrollBehavior = 'smooth';
+                     // Можно добавить снаппинг и здесь, если нужно
+                     // if (isDragging) { snapToNearestSlide(); }
+                     // isDragging = false;
                 });
 
                 window.addEventListener('touchmove', (e) => {
@@ -411,7 +475,7 @@
             } else {
                 console.error("Slider element #featured-sticker-container not found.");
             }
-            // --- КОНЕЦ ЛОГИКИ ---
+            // --- КОНЕЦ СТАРОЙ ЛОГИКИ СЛАЙДЕРА ---
 
         }); // Конец DOMContentLoaded
     </script>
