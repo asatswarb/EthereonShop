@@ -107,45 +107,44 @@
         .my-stickers { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-top: 15px; }
         .my-stickers img { width: 100%; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: block; }
 
-        /* 3. Стили для аватара пользователя - ДОБАВЛЕНО */
+        /* Стили для аватара пользователя */
         .user-profile-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            margin-bottom: 20px; /* Уменьшил отступ */
+            margin-bottom: 20px;
             padding: 10px 0;
         }
         .profile-avatar {
-            width: 125px; /* Сделал чуть меньше */
-            height: 125px;
+            width: 125px; /* Размер из твоего кода */
+            height: 125px; /* Размер из твоего кода */
             border-radius: 50%;
             object-fit: cover;
-            border: 2px solid #ccc; /* Простая серая рамка */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Легкая тень */
-            background-color: #eee; /* Фон на случай, если фото нет */
-            /* Запрет выделения/перетаскивания */
+            border: 2px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background-color: #eee;
             user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
             pointer-events: none;
+            margin-bottom: 10px; /* Отступ под аватаром */
         }
-
-        .profile-name {
+        .profile-name { /* Стили для имени */
             display: block;
-            font-size: 18px;
+            font-size: 25px;
             font-weight: 600;
-            color: #000;
+            color: #000; /* Цвет из твоего кода */
             text-align: center;
             word-break: break-word;
+            margin-bottom: 1.5px; /* Отступ под именем */
         }
-
-        .profile-id {
+        .profile-id { /* Стили для ID */
             display: block;
             font-size: 14px;
-            color: #007aff;
+            color: #007aff; /* Цвет из твоего кода */
             text-align: center;
         }
 
+
         /* --- Popup Styles --- */
-        /* Стили попапа остаются без изменений */
         .popup {
             position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
             background-color: white; box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
@@ -212,18 +211,19 @@
             </div>
             <div class="sticker-section">
                 <div class="sticker-title">Unique Skills</div>
-                </div>
+            </div>
              <div class="sticker-section">
                  <div class="sticker-title">Ion Crystals</div>
-                 </div>
+             </div>
         </div>
 
         <div id="collection-content" class="page-content">
             <div class="collection-section">
                 <div class="user-profile-container">
-                   <img id="user-avatar" class="profile-avatar" alt="User Avatar" src="" draggable="false"> </div>
+                   <img id="user-avatar" class="profile-avatar" alt="User Avatar" src="" draggable="false">
                    <span id="user-name" class="profile-name"></span>
                    <span id="user-id" class="profile-id"></span>
+                </div>
                 <div class="my-stickers">
                     </div>
             </div>
@@ -272,110 +272,121 @@
             if(targetContent) { targetContent.classList.add('active'); }
             if(clickedButton) { clickedButton.classList.add('active'); }
          }
-        function openPopup(popupId) { /* ... без изменений ... */
-            const popup = document.getElementById(popupId);
-            const overlay = document.getElementById('popup-overlay');
-            if (popup && overlay) {
-                overlay.classList.add('show');
-                popup.classList.add('show');
-                document.body.style.overflow = 'hidden';
-            }
-        }
-        function closePopup(popupId) { /* ... без изменений ... */
+        function openPopup(popupId) {
              const popup = document.getElementById(popupId);
              const overlay = document.getElementById('popup-overlay');
              if (popup && overlay) {
-                 overlay.classList.remove('show');
-                 popup.classList.remove('show');
+                 overlay.classList.add('show');
+                 popup.classList.add('show');
                  document.body.style.overflow = 'hidden';
              }
-        }
+         }
+        function closePopup(popupId) {
+              const popup = document.getElementById(popupId);
+              const overlay = document.getElementById('popup-overlay');
+              if (popup && overlay) {
+                  overlay.classList.remove('show');
+                  popup.classList.remove('show');
+                  document.body.style.overflow = 'hidden';
+              }
+         }
 
         // --- Инициализация и основная логика ---
         document.addEventListener('DOMContentLoaded', () => {
 
-            // 4. ЛОГИКА ДЛЯ TELEGRAM AVATAR - ДОБАВЛЕНО
-            const tg = window.Telegram.WebApp; // Получаем объект WebApp
+            // ЛОГИКА ДЛЯ TELEGRAM AVATAR, NAME, ID - ОБНОВЛЕНО
+            const tg = window.Telegram.WebApp;
 
             function displayUserInfo() {
-                 try {
-                     const user = tg.initDataUnsafe?.user;
-                     const avatarElement = document.getElementById('user-avatar');
-                     const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png'; // URL дефолтной картинки
+                try {
+                    const user = tg.initDataUnsafe?.user;
+                    const avatarElement = document.getElementById('user-avatar');
+                    const nameElement = document.getElementById('user-name'); // Находим элемент имени
+                    const idElement = document.getElementById('user-id');     // Находим элемент ID
+                    const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
 
-                     if (avatarElement) {
-                         if (user?.photo_url) {
-                             avatarElement.src = user.photo_url;
-                         } else {
-                             avatarElement.src = defaultAvatar;
-                             console.log('User photo URL not available.');
-                         }
-                         avatarElement.alt = user ? `${user.first_name || ''} ${user.last_name || ''}'s Avatar`.trim() : 'User Avatar';
-                     } else {
-                         console.error('Avatar element (#user-avatar) not found.');
-                     }
+                    // Установка аватара
+                    if (avatarElement) {
+                        if (user?.photo_url) {
+                            avatarElement.src = user.photo_url;
+                        } else {
+                            avatarElement.src = defaultAvatar;
+                            console.log('User photo URL not available.');
+                        }
+                        avatarElement.alt = user ? `${user.first_name || ''} ${user.last_name || ''}'s Avatar`.trim() : 'User Avatar';
+                    } else { console.error('Avatar element (#user-avatar) not found.'); }
 
-                     if (nameElement) {
-                         if (user) {
-                             const firstName = user.first_name || '';
-                             const lastName = user.last_name || '';
-                             nameElement.textContent = `${firstName} ${lastName}`.trim() || 'User'; // Показываем имя и фамилию или 'User'
-                         } else {
-                             nameElement.textContent = 'User'; // Если нет данных пользователя
-                         }
-                     } else { console.error('Name element (#user-name) not found.'); }
+                    // Установка имени пользователя
+                    if (nameElement) {
+                        if (user) {
+                            const firstName = user.first_name || '';
+                            const lastName = user.last_name || '';
+                            nameElement.textContent = `${firstName} ${lastName}`.trim() || 'User';
+                        } else {
+                            nameElement.textContent = 'User';
+                        }
+                    } else { console.error('Name element (#user-name) not found.'); }
 
-                     if (idElement) {
-                         if (user?.id) {
-                             idElement.textContent = `ID: ${user.id}`; // Показываем ID с префиксом
-                         } else {
-                             idElement.textContent = 'ID: Unknown'; // Если ID нет (маловероятно)
-                         }
-                     } else { console.error('ID element (#user-id) not found.'); }
+                    // Установка ID пользователя
+                    if (idElement) {
+                        if (user?.id) {
+                            idElement.textContent = `ID ${user.id}`;
+                        } else {
+                            idElement.textContent = 'ID: Unknown';
+                        }
+                    } else { console.error('ID element (#user-id) not found.'); }
 
-                 } catch (error) {
-                     console.error('Error accessing Telegram user data:', error);
-                     const avatarElement = document.getElementById('user-avatar');
-                     if (avatarElement) {
-                         avatarElement.src = defaultAvatar; // Ставим дефолт и при ошибке
-                     }
-                 }
-             }
+                } catch (error) {
+                    console.error('Error accessing Telegram user data:', error);
+                    // Установка дефолтных значений при ошибке
+                    const avatarElement = document.getElementById('user-avatar');
+                    const nameElement = document.getElementById('user-name');
+                    const idElement = document.getElementById('user-id');
+                    const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
+                    if (avatarElement) { avatarElement.src = defaultAvatar; }
+                    if (nameElement) { nameElement.textContent = 'User'; }
+                    if (idElement) { idElement.textContent = 'ID: Error'; }
+                }
+            }
 
-            if (tg) { // Проверка, что объект tg существует
-                 tg.ready();
-                 displayUserInfo(); // Вызываем функцию для отображения авы
-                 tg.expand();
+            if (tg) {
+                tg.ready();
+                displayUserInfo();
+                tg.expand();
             } else {
-                 console.error('Telegram WebApp script not loaded or object not found.');
-                 // Ставим дефолтную аву, если ТГ объект не найден
-                 const avatarElement = document.getElementById('user-avatar');
-                 const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
-                 if (avatarElement) { avatarElement.src = defaultAvatar; }
-             }
-            // КОНЕЦ ЛОГИКИ ДЛЯ TELEGRAM AVATAR
+                console.error('Telegram WebApp script not loaded or object not found.');
+                 // Ставим дефолтные значения, если ТГ объект не найден
+                const avatarElement = document.getElementById('user-avatar');
+                const nameElement = document.getElementById('user-name');
+                const idElement = document.getElementById('user-id');
+                const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
+                if (avatarElement) { avatarElement.src = defaultAvatar; }
+                if (nameElement) { nameElement.textContent = 'User'; }
+                if (idElement) { idElement.textContent = 'ID: Unknown'; }
+            }
+            // КОНЕЦ ЛОГИКИ TELEGRAM
 
             // Код инициализации активной кнопки/контента (без изменений)
             const initialActiveButton = document.querySelector('.bottom-nav button.active');
             if (!initialActiveButton) {
-                const firstButton = document.querySelector('.bottom-nav button');
-                 if (firstButton && firstButton.getAttribute('onclick')?.includes('showContent')) {
-                    const onclickString = firstButton.getAttribute('onclick');
-                    const match = onclickString.match(/showContent\('([^']*)'/);
-                    if (match && match[1]) {
-                        showContent(match[1], firstButton);
-                    }
-                } else {
-                    const firstContentButton = document.querySelector('.bottom-nav button[onclick*="showContent"]');
-                     if (firstContentButton) {
-                         const onclickString = firstContentButton.getAttribute('onclick');
-                         const match = onclickString.match(/showContent\('([^']*)'/);
-                         if (match && match[1]) { showContent(match[1], firstContentButton); }
+                 const firstButton = document.querySelector('.bottom-nav button');
+                  if (firstButton && firstButton.getAttribute('onclick')?.includes('showContent')) {
+                     const onclickString = firstButton.getAttribute('onclick');
+                     const match = onclickString.match(/showContent\('([^']*)'/);
+                     if (match && match[1]) {
+                         showContent(match[1], firstButton);
                      }
-                }
+                 } else {
+                     const firstContentButton = document.querySelector('.bottom-nav button[onclick*="showContent"]');
+                      if (firstContentButton) {
+                          const onclickString = firstContentButton.getAttribute('onclick');
+                          const match = onclickString.match(/showContent\('([^']*)'/);
+                          if (match && match[1]) { showContent(match[1], firstContentButton); }
+                      }
+                 }
             } else {
-                const currentContentId = initialActiveButton.getAttribute('onclick').match(/showContent\('([^']*)'/)[1];
-                showContent(currentContentId, initialActiveButton);
+                 const currentContentId = initialActiveButton.getAttribute('onclick').match(/showContent\('([^']*)'/)[1];
+                 showContent(currentContentId, initialActiveButton);
             }
 
 
@@ -406,30 +417,17 @@
                     const slideWidth = slides[0].offsetWidth; // Ширина слайда
                     const containerWidth = slider.offsetWidth; // Ширина видимой области
                     const currentScroll = slider.scrollLeft; // Текущая прокрутка
-
-                    // Центр первого слайда (относительно начала slider)
                     const center0 = slides[0].offsetLeft - slider.offsetLeft + slideWidth / 2;
-                    // Центр второго слайда (относительно начала slider)
                     const center1 = slides[1].offsetLeft - slider.offsetLeft + slideWidth / 2;
-
-                    // Координата X средней точки МЕЖДУ центрами двух слайдов
                     const midpointBetweenSlides = (center0 + center1) / 2;
-
-                    // Координата X центра видимой области контейнера (относительно начала slider)
                     const viewportCenter = currentScroll + containerWidth / 2;
-
                     let targetIndex;
-
-                    // Если центр видимой области левее средней точки между слайдами, цель - слайд 0
                     if (viewportCenter < midpointBetweenSlides) {
                         targetIndex = 0;
-                    } else { // Иначе (правее или на средней точке) - цель - слайд 1
+                    } else {
                         targetIndex = 1;
                     }
-
-                    // Получаем целевую позицию для выравнивания по левому краю
                     const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
-
                     slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
                 };
 
@@ -471,30 +469,21 @@
                     slider.style.scrollBehavior = 'auto';
                 }, { passive: true });
 
-                window.addEventListener('touchend', (event) => { // Добавил event
-                    // Проверка стала чуть надежнее, но логика та же
+                window.addEventListener('touchend', (event) => {
                     if (!isDown) return;
-                    // Проверяем, был ли драг или было ли отпускание над слайдером
                     let touchendOnSlider = slider.contains(event.target);
                     if (!isDragging && !touchendOnSlider && event.target !== slider) return;
-
-
                     isDown = false;
                     slider.style.scrollBehavior = 'smooth';
                     if (isDragging) {
                         snapToNearestSlide();
                     }
-                     // Сбрасываем isDragging после проверки
-                     // isDragging = false; // Лучше сбрасывать в touchstart/mousedown
                 });
 
                 window.addEventListener('touchcancel', () => {
                     if (!isDown) return;
                     isDown = false;
                     slider.style.scrollBehavior = 'smooth';
-                     // Можно добавить снаппинг и здесь, если нужно
-                     // if (isDragging) { snapToNearestSlide(); }
-                     // isDragging = false;
                 });
 
                 window.addEventListener('touchmove', (e) => {
