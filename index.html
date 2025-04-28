@@ -104,7 +104,6 @@
 
         /* --- Collection / Profile Section Styles --- */
         .collection-section { padding: 0; }
-        .collection-title { font-size: 24px; margin-bottom: 15px; text-align: center; } /* Центрируем заголовок */
         .my-stickers { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-top: 15px; }
         .my-stickers img { width: 100%; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: block; }
 
@@ -117,8 +116,8 @@
             padding: 10px 0;
         }
         .profile-avatar {
-            width: 100px; /* Сделал чуть меньше */
-            height: 100px;
+            width: 150px; /* Сделал чуть меньше */
+            height: 150px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #ccc; /* Простая серая рамка */
@@ -208,7 +207,7 @@
 
         <div id="collection-content" class="page-content">
             <div class="collection-section">
-                <h1 class="collection-title">My Profile</h1> <div class="user-profile-container">
+                <div class="user-profile-container">
                    <img id="user-avatar" class="profile-avatar" alt="User Avatar" src="" draggable="false"> </div>
                 <div class="my-stickers">
                     </div>
