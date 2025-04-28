@@ -116,8 +116,8 @@
             padding: 10px 0;
         }
         .profile-avatar {
-            width: 150px; /* Сделал чуть меньше */
-            height: 150px;
+            width: 125px; /* Сделал чуть меньше */
+            height: 125px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #ccc; /* Простая серая рамка */
@@ -127,9 +127,22 @@
             user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
             pointer-events: none;
         }
-        /* Убираем стиль для .empty-collection, т.к. элемента больше нет */
-        /* .empty-collection { ... } */
 
+        .profile-name {
+            display: block;
+            font-size: 18px;
+            font-weight: 600;
+            color: #000;
+            text-align: center;
+            word-break: break-word;
+        }
+
+        .profile-id {
+            display: block;
+            font-size: 14px;
+            color: #007aff;
+            text-align: center;
+        }
 
         /* --- Popup Styles --- */
         /* Стили попапа остаются без изменений */
@@ -209,6 +222,8 @@
             <div class="collection-section">
                 <div class="user-profile-container">
                    <img id="user-avatar" class="profile-avatar" alt="User Avatar" src="" draggable="false"> </div>
+                   <span id="user-name" class="profile-name"></span>
+                   <span id="user-id" class="profile-id"></span>
                 <div class="my-stickers">
                     </div>
             </div>
@@ -299,6 +314,25 @@
                      } else {
                          console.error('Avatar element (#user-avatar) not found.');
                      }
+
+                     if (nameElement) {
+                         if (user) {
+                             const firstName = user.first_name || '';
+                             const lastName = user.last_name || '';
+                             nameElement.textContent = `${firstName} ${lastName}`.trim() || 'User'; // Показываем имя и фамилию или 'User'
+                         } else {
+                             nameElement.textContent = 'User'; // Если нет данных пользователя
+                         }
+                     } else { console.error('Name element (#user-name) not found.'); }
+
+                     if (idElement) {
+                         if (user?.id) {
+                             idElement.textContent = `ID: ${user.id}`; // Показываем ID с префиксом
+                         } else {
+                             idElement.textContent = 'ID: Unknown'; // Если ID нет (маловероятно)
+                         }
+                     } else { console.error('ID element (#user-id) not found.'); }
+
                  } catch (error) {
                      console.error('Error accessing Telegram user data:', error);
                      const avatarElement = document.getElementById('user-avatar');
