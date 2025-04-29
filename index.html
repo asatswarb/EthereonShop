@@ -25,7 +25,7 @@
 
         .content {
             flex: 1; padding: 16px; overflow-y: auto; position: relative;
-             -webkit-overflow-scrolling: touch;
+            -webkit-overflow-scrolling: touch;
         }
 
         .page-content { display: none; }
@@ -141,6 +141,10 @@
             font-size: 14px;
             color: #007aff; /* Цвет из твоего кода */
             text-align: center;
+            cursor: pointer; /* <<< ДОБАВЛЕНО: Указывает, что элемент кликабелен */
+        }
+        .profile-id:hover { /* <<< ДОБАВЛЕНО: Небольшое осветление при наведении */
+             filter: brightness(1.1);
         }
 
 
@@ -183,12 +187,40 @@
             font-weight: 550; text-align: center; font-size: 20px;
             color: #6c757d; margin-top: 15px; margin-bottom: 20px;
         }
+
+        /* --- СТИЛИ ДЛЯ ПОДТВЕРЖДЕНИЯ КОПИРОВАНИЯ --- */
+        .copy-toast {
+            position: fixed;
+            bottom: 90px; /* Выше нижней навигации */
+            left: 50%;
+            transform: translateX(-50%) translateY(20px); /* Начнем немного ниже */
+            background-color: rgba(40, 40, 40, 0.85); /* Полупрозрачный темный фон */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500; /* Немного тоньше основного */
+            z-index: 1001; /* Выше оверлея попапа */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s linear 0.3s;
+            white-space: nowrap; /* Текст в одну строку */
+            pointer-events: none; /* Не мешать кликам под ним */
+        }
+
+        .copy-toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0); /* Поднимаем на место */
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s linear 0s;
+        }
+
     </style>
 </head>
 <body>
     <div class="content">
         <div id="nfts-content" class="page-content active">
-           <div class="sticker-section">
+            <div class="sticker-section">
                 <div class="sticker-title">Ethereon collections</div>
                 <div class="sticker-grid" id="featured-sticker-container">
                     <div class="sticker-slide">
@@ -220,9 +252,9 @@
         <div id="collection-content" class="page-content">
             <div class="collection-section">
                 <div class="user-profile-container">
-                   <img id="user-avatar" class="profile-avatar" alt="User Avatar" src="" draggable="false">
-                   <span id="user-name" class="profile-name"></span>
-                   <span id="user-id" class="profile-id"></span>
+                    <img id="user-avatar" class="profile-avatar" alt="User Avatar" src="" draggable="false">
+                    <span id="user-name" class="profile-name"></span>
+                    <span id="user-id" class="profile-id"></span>
                 </div>
                 <div class="my-stickers">
                     </div>
@@ -231,14 +263,14 @@
     </div>
 
     <div class="bottom-nav">
-         <button onclick="showContent('nfts-content', this)" class="active">
-             <div class="nav-icon"> <img src="https://i.imgur.com/iLmlF6Z.png" alt="NFT" draggable="false"> <span>Ion Treasury</span> </div>
-         </button>
-         <button onclick="openPopup('market-popup', this)">
-             <div class="nav-icon"> <img src="https://i.imgur.com/m5BKFIZ.png" alt="Market" draggable="false"> <span>Market</span> </div>
-         </button>
-         <button onclick="showContent('collection-content', this)">
-             <div class="nav-icon"> <img src="https://i.imgur.com/WvvEnks.png" alt="Collection" draggable="false"> <span>My Profile</span> </div> </button>
+        <button onclick="showContent('nfts-content', this)" class="active">
+            <div class="nav-icon"> <img src="https://i.imgur.com/iLmlF6Z.png" alt="NFT" draggable="false"> <span>Ion Treasury</span> </div>
+        </button>
+        <button onclick="openPopup('market-popup', this)">
+            <div class="nav-icon"> <img src="https://i.imgur.com/m5BKFIZ.png" alt="Market" draggable="false"> <span>Market</span> </div>
+        </button>
+        <button onclick="showContent('collection-content', this)">
+            <div class="nav-icon"> <img src="https://i.imgur.com/WvvEnks.png" alt="Collection" draggable="false"> <span>My Profile</span> </div> </button>
     </div>
 
     <div id="market-popup" class="popup">
@@ -253,6 +285,8 @@
     </div>
     <div id="popup-overlay" class="overlay" onclick="closePopup('market-popup')"></div>
 
+    <div id="copy-toast" class="copy-toast">Copied to clipboard!</div>
+
     <script>
         // --- Старые функции управления попапами и контентом (без изменений) ---
         function closeAllPopups() {
@@ -261,7 +295,7 @@
                 const popup = document.getElementById(id);
                 if (popup && popup.classList.contains('show')) { closePopup(id); }
             });
-         }
+        }
         function showContent(contentId, clickedButton) {
             closeAllPopups();
             const contentSections = document.querySelectorAll('.page-content');
@@ -271,7 +305,7 @@
             const targetContent = document.getElementById(contentId);
             if(targetContent) { targetContent.classList.add('active'); }
             if(clickedButton) { clickedButton.classList.add('active'); }
-         }
+        }
         function openPopup(popupId) {
              const popup = document.getElementById(popupId);
              const overlay = document.getElementById('popup-overlay');
@@ -287,22 +321,39 @@
               if (popup && overlay) {
                   overlay.classList.remove('show');
                   popup.classList.remove('show');
-                  document.body.style.overflow = 'hidden';
+                  document.body.style.overflow = 'hidden'; // Оставляем 'hidden' так как основное тело не скроллится
               }
+         }
+
+         // --- Функция для отображения тоста ---
+         let toastTimeout; // Переменная для хранения ID таймера
+         function showCopyToast() {
+            const toast = document.getElementById('copy-toast');
+            if (toast) {
+                // Если уже есть активный таймер, отменяем его
+                if (toastTimeout) {
+                    clearTimeout(toastTimeout);
+                }
+                toast.classList.add('show');
+                // Устанавливаем новый таймер для скрытия
+                toastTimeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                    toastTimeout = null; // Сбрасываем ID таймера
+                }, 2000); // Показываем на 2 секунды
+            }
          }
 
         // --- Инициализация и основная логика ---
         document.addEventListener('DOMContentLoaded', () => {
 
-            // ЛОГИКА ДЛЯ TELEGRAM AVATAR, NAME, ID - ОБНОВЛЕНО
             const tg = window.Telegram.WebApp;
 
             function displayUserInfo() {
                 try {
                     const user = tg.initDataUnsafe?.user;
                     const avatarElement = document.getElementById('user-avatar');
-                    const nameElement = document.getElementById('user-name'); // Находим элемент имени
-                    const idElement = document.getElementById('user-id');     // Находим элемент ID
+                    const nameElement = document.getElementById('user-name');
+                    const idElement = document.getElementById('user-id');
                     const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
 
                     // Установка аватара
@@ -327,13 +378,32 @@
                         }
                     } else { console.error('Name element (#user-name) not found.'); }
 
-                    // Установка ID пользователя
+                    // Установка ID пользователя и ДОБАВЛЕНИЕ ОБРАБОТЧИКА КЛИКА
                     if (idElement) {
+                        let userId = 'Unknown'; // Значение по умолчанию
                         if (user?.id) {
-                            idElement.textContent = `ID ${user.id}`;
+                             userId = user.id.toString(); // Сохраняем чистое ID
+                             idElement.textContent = `ID ${userId}`;
                         } else {
-                            idElement.textContent = 'ID: Unknown';
+                             idElement.textContent = 'ID: Unknown';
                         }
+
+                        // <<< НАЧАЛО ДОБАВЛЕННОГО КОДА ДЛЯ КОПИРОВАНИЯ >>>
+                        idElement.addEventListener('click', () => {
+                            if (userId !== 'Unknown') {
+                                navigator.clipboard.writeText(userId).then(() => {
+                                    console.log('User ID copied to clipboard:', userId);
+                                    showCopyToast(); // Показываем подтверждение
+                                }).catch(err => {
+                                    console.error('Failed to copy User ID: ', err);
+                                    // Можно добавить сообщение об ошибке для пользователя, если нужно
+                                });
+                            } else {
+                                console.log('Cannot copy unknown User ID.');
+                            }
+                        });
+                        // <<< КОНЕЦ ДОБАВЛЕННОГО КОДА ДЛЯ КОПИРОВАНИЯ >>>
+
                     } else { console.error('ID element (#user-id) not found.'); }
 
                 } catch (error) {
@@ -351,18 +421,18 @@
 
             if (tg) {
                 tg.ready();
-                displayUserInfo();
+                displayUserInfo(); // Вызываем функцию для отображения данных
                 tg.expand();
             } else {
                 console.error('Telegram WebApp script not loaded or object not found.');
                  // Ставим дефолтные значения, если ТГ объект не найден
-                const avatarElement = document.getElementById('user-avatar');
-                const nameElement = document.getElementById('user-name');
-                const idElement = document.getElementById('user-id');
-                const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
-                if (avatarElement) { avatarElement.src = defaultAvatar; }
-                if (nameElement) { nameElement.textContent = 'User'; }
-                if (idElement) { idElement.textContent = 'ID: Unknown'; }
+                 const avatarElement = document.getElementById('user-avatar');
+                 const nameElement = document.getElementById('user-name');
+                 const idElement = document.getElementById('user-id');
+                 const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
+                 if (avatarElement) { avatarElement.src = defaultAvatar; }
+                 if (nameElement) { nameElement.textContent = 'User'; }
+                 if (idElement) { idElement.textContent = 'ID: Unknown'; }
             }
             // КОНЕЦ ЛОГИКИ TELEGRAM
 
@@ -371,19 +441,19 @@
             if (!initialActiveButton) {
                  const firstButton = document.querySelector('.bottom-nav button');
                   if (firstButton && firstButton.getAttribute('onclick')?.includes('showContent')) {
-                     const onclickString = firstButton.getAttribute('onclick');
-                     const match = onclickString.match(/showContent\('([^']*)'/);
-                     if (match && match[1]) {
-                         showContent(match[1], firstButton);
-                     }
-                 } else {
-                     const firstContentButton = document.querySelector('.bottom-nav button[onclick*="showContent"]');
-                      if (firstContentButton) {
-                          const onclickString = firstContentButton.getAttribute('onclick');
-                          const match = onclickString.match(/showContent\('([^']*)'/);
-                          if (match && match[1]) { showContent(match[1], firstContentButton); }
+                      const onclickString = firstButton.getAttribute('onclick');
+                      const match = onclickString.match(/showContent\('([^']*)'/);
+                      if (match && match[1]) {
+                          showContent(match[1], firstButton);
                       }
-                 }
+                  } else {
+                      const firstContentButton = document.querySelector('.bottom-nav button[onclick*="showContent"]');
+                       if (firstContentButton) {
+                           const onclickString = firstContentButton.getAttribute('onclick');
+                           const match = onclickString.match(/showContent\('([^']*)'/);
+                           if (match && match[1]) { showContent(match[1], firstContentButton); }
+                       }
+                  }
             } else {
                  const currentContentId = initialActiveButton.getAttribute('onclick').match(/showContent\('([^']*)'/)[1];
                  showContent(currentContentId, initialActiveButton);
@@ -470,29 +540,34 @@
                 }, { passive: true });
 
                 window.addEventListener('touchend', (event) => {
-                    if (!isDown) return;
-                    let touchendOnSlider = slider.contains(event.target);
-                    if (!isDragging && !touchendOnSlider && event.target !== slider) return;
-                    isDown = false;
-                    slider.style.scrollBehavior = 'smooth';
-                    if (isDragging) {
-                        snapToNearestSlide();
-                    }
+                     if (!isDown) return;
+                     let touchendOnSlider = slider.contains(event.target);
+                     // Check if touchend happened outside the slider AND was not a drag
+                     // This check might need adjustment depending on exact desired behavior
+                     // The original logic seemed to potentially stop snap if touchend was outside slider even after a drag
+                     // Simplified: we only care if a drag happened
+                     isDown = false;
+                     slider.style.scrollBehavior = 'smooth';
+                     if (isDragging) {
+                         snapToNearestSlide();
+                     }
                 });
+
 
                 window.addEventListener('touchcancel', () => {
                     if (!isDown) return;
                     isDown = false;
                     slider.style.scrollBehavior = 'smooth';
+                    // Optionally snap here as well, or just reset state
                 });
 
                 window.addEventListener('touchmove', (e) => {
                     if (!isDown) return;
-                    isDragging = true;
+                    isDragging = true; // Mark as dragging on first move
                     const x = e.touches[0].pageX - slider.offsetLeft;
                     const walk = x - touchStartX;
                     slider.scrollLeft = touchScrollLeft - walk;
-                }, { passive: true });
+                }, { passive: true }); // Passive is important for scroll performance
 
             } else {
                 console.error("Slider element #featured-sticker-container not found.");
