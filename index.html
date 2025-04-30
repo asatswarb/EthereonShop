@@ -190,23 +190,35 @@
 
         /* --- СТИЛИ ДЛЯ ПОДТВЕРЖДЕНИЯ КОПИРОВАНИЯ --- */
         .copy-toast {
+            display: flex;
             position: fixed;
-            bottom: 90px; /* Выше нижней навигации */
+            align-items: center; /* Вертикальное центрирование flex-элементов */
+            bottom: 75px; /* Выше нижней навигации */
             left: 50%;
-            transform: translateX(-50%) translateY(20px); /* Начнем немного ниже */
-            background-color: rgba(40, 40, 40, 0.85); /* Полупрозрачный темный фон */
+            width: 95%;
+            height: 50px;
+            transform: translateX(-50%) translateY(10px); /* Начнем немного ниже */
+            background-color: #666;
             color: white;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 500; /* Немного тоньше основного */
+            border-radius: 15px;
+            padding: 0px 12.5px; /* Паддинги влияют на пространство внутри */
+            font-size: 15px;
+            font-weight: 400; /* Немного тоньше основного */
             z-index: 1001; /* Выше оверлея попапа */
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s linear 0.3s;
-            white-space: nowrap; /* Текст в одну строку */
             pointer-events: none; /* Не мешать кликам под ним */
+            /* white-space: nowrap; Убрано, если не нужно */
         }
+
+        /* << ДОБАВЛЕНО: Стиль для изображения внутри тоста >> */
+        .copy-toast img {
+            height: 28px; /* Высота картинки (чуть меньше высоты плашки) */
+            margin-right: 10px; /* Отступ справа от картинки */
+            flex-shrink: 0; /* Не сжимать картинку */
+        }
+
 
         .copy-toast.show {
             opacity: 1;
@@ -220,46 +232,46 @@
 <body>
     <div class="content">
         <div id="nfts-content" class="page-content active">
+           <div class="sticker-section">
+               <div class="sticker-title">Ethereon collections</div>
+               <div class="sticker-grid" id="featured-sticker-container">
+                   <div class="sticker-slide">
+                       <img src="https://i.imgur.com/tBkD6dW.jpeg" alt="Ethereon Exclusive" draggable="false">
+                       <div class="sticker-creator-info">
+                           <img src="https://i.imgur.com/ffHaWEc.jpeg" alt="Creator Avatar" class="creator-avatar" draggable="false">
+                           <span class="creator-name">Ethereon Exclusive</span>
+                       </div>
+                   </div>
+                   <div class="sticker-slide">
+                       <img src="https://i.imgur.com/jNGlO3B.jpeg" alt="Ion Treasury" draggable="false">
+                       <div class="sticker-creator-info">
+                           <img src="https://i.imgur.com/eYFLmb6.jpeg" alt="Creator Avatar" class="creator-avatar" draggable="false">
+                           <span class="creator-name">Ion Treasury</span>
+                       </div>
+                   </div>
+               </div>
+               <div class="sticker-title">Best free ions</div>
+               <p class="no-ions-message">No free ions available</p>
+           </div>
+           <div class="sticker-section">
+               <div class="sticker-title">Unique Skills</div>
+           </div>
             <div class="sticker-section">
-                <div class="sticker-title">Ethereon collections</div>
-                <div class="sticker-grid" id="featured-sticker-container">
-                    <div class="sticker-slide">
-                        <img src="https://i.imgur.com/tBkD6dW.jpeg" alt="Ethereon Exclusive" draggable="false">
-                        <div class="sticker-creator-info">
-                            <img src="https://i.imgur.com/ffHaWEc.jpeg" alt="Creator Avatar" class="creator-avatar" draggable="false">
-                            <span class="creator-name">Ethereon Exclusive</span>
-                        </div>
-                    </div>
-                    <div class="sticker-slide">
-                        <img src="https://i.imgur.com/jNGlO3B.jpeg" alt="Ion Treasury" draggable="false">
-                        <div class="sticker-creator-info">
-                            <img src="https://i.imgur.com/eYFLmb6.jpeg" alt="Creator Avatar" class="creator-avatar" draggable="false">
-                            <span class="creator-name">Ion Treasury</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="sticker-title">Best free ions</div>
-                <p class="no-ions-message">No free ions available</p>
+                <div class="sticker-title">Ion Crystals</div>
             </div>
-            <div class="sticker-section">
-                <div class="sticker-title">Unique Skills</div>
-            </div>
-             <div class="sticker-section">
-                 <div class="sticker-title">Ion Crystals</div>
-             </div>
-        </div>
+       </div>
 
-        <div id="collection-content" class="page-content">
-            <div class="collection-section">
-                <div class="user-profile-container">
-                    <img id="user-avatar" class="profile-avatar" alt="User Avatar" src="" draggable="false">
-                    <span id="user-name" class="profile-name"></span>
-                    <span id="user-id" class="profile-id"></span>
-                </div>
-                <div class="my-stickers">
-                    </div>
-            </div>
-        </div>
+       <div id="collection-content" class="page-content">
+           <div class="collection-section">
+               <div class="user-profile-container">
+                   <img id="user-avatar" class="profile-avatar" alt="User Avatar" src="" draggable="false">
+                   <span id="user-name" class="profile-name"></span>
+                   <span id="user-id" class="profile-id"></span>
+               </div>
+               <div class="my-stickers">
+                   </div>
+           </div>
+       </div>
     </div>
 
     <div class="bottom-nav">
@@ -285,7 +297,9 @@
     </div>
     <div id="popup-overlay" class="overlay" onclick="closePopup('market-popup')"></div>
 
-    <div id="copy-toast" class="copy-toast">Copied to clipboard!</div>
+    <div id="copy-toast" class="copy-toast">
+        <img src="https://i.imgur.com/8fyCRK8.gif" alt="" draggable="false"> Copied to clipboard!
+    </div>
 
     <script>
         // --- Старые функции управления попапами и контентом (без изменений) ---
@@ -385,24 +399,25 @@
                              userId = user.id.toString(); // Сохраняем чистое ID
                              idElement.textContent = `ID ${userId}`;
                         } else {
-                             idElement.textContent = 'ID: Unknown';
+                             idElement.textContent = 'ID Unknown';
                         }
 
                         // <<< НАЧАЛО ДОБАВЛЕННОГО КОДА ДЛЯ КОПИРОВАНИЯ >>>
                         idElement.addEventListener('click', () => {
-                            if (userId !== 'Unknown') {
-                                navigator.clipboard.writeText(userId).then(() => {
-                                    console.log('User ID copied to clipboard:', userId);
-                                    showCopyToast(); // Показываем подтверждение
+                            const textToCopy = idElement.textContent; // Берем текст, который виден
+                            if (textToCopy) { // Если текст вообще есть
+                                navigator.clipboard.writeText(textToCopy).then(() => {
+                                    // Успешно скопировано (или нет) - не важно, показываем тост
+                                    console.log('Text copied attempt:', textToCopy);
+                                    showCopyToast(); // Показываем тост в любом случае
                                 }).catch(err => {
-                                    console.error('Failed to copy User ID: ', err);
-                                    // Можно добавить сообщение об ошибке для пользователя, если нужно
+                                    // Ошибка копирования - все равно показываем тост
+                                    console.error('Failed to copy text, but showing toast anyway: ', err);
+                                    showCopyToast();
                                 });
-                            } else {
-                                console.log('Cannot copy unknown User ID.');
                             }
                         });
-                        // <<< КОНЕЦ ДОБАВЛЕННОГО КОДА ДЛЯ КОПИРОВАНИЯ >>>
+                        // КОНЕЦ ЗАМЕНЫ
 
                     } else { console.error('ID element (#user-id) not found.'); }
 
