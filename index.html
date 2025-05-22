@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/> <title>Sticker Market</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+    <title>Sticker Market</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         * {
@@ -20,212 +21,561 @@
             flex-direction: column;
             height: 100vh;
             overflow: hidden;
-            user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         .content {
-            flex: 1; padding: 16px; overflow-y: auto; position: relative;
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
             -webkit-overflow-scrolling: touch;
+            background-color: #fff;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .content::-webkit-scrollbar {
+            display: none;
         }
 
-        .page-content { display: none; }
-        .page-content.active { display: block; }
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
 
+        /* NFT Content Styling */
+        #nfts-content.active > .sticker-section {
+            padding-left: 0;
+            padding-right: 0;
+        }
+        #nfts-content.active > .sticker-section:first-child {
+            padding-top: 16px;
+        }
+        #nfts-content.active .sticker-title {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
+        /* Collection Content Styling */
+        #collection-content.active > .collection-section {
+            padding: 16px 0;
+        }
+
+        /* Collection Detail Page */
+        #collection-detail-page {
+            padding: 0;
+            background-color: #ffffff;
+        }
+        .collection-detail-content-wrapper {
+            padding: 16px; /* Changed from 16px 0 to 16px for consistent padding */
+        }
+
+        /* Bottom Navigation */
         .bottom-nav {
-            display: flex; justify-content: space-around; align-items: center;
-            padding: 0 15px; background-color: transparent; border-top: none;
-            box-shadow: none; border-top-left-radius: 0; border-top-right-radius: 0;
-            overflow: hidden; flex-shrink: 0; gap: 15px;
-            padding-bottom: env(safe-area-inset-bottom, 10px); /* Отступ для iPhone */
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 15px;
+            background-color: transparent;
+            border-top: none;
+            box-shadow: none;
+            overflow: hidden;
+            flex-shrink: 0;
+            gap: 15px;
+            padding-bottom: env(safe-area-inset-bottom, 10px);
         }
 
         .bottom-nav button {
-            background-color: white; border: none; font-size: 12.5px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 550; color: #000;
-            flex: 1; padding: 5px 0; transition: background-color 0.2s, box-shadow 0.2s, z-index 0s;
-            border-top-left-radius: 20px; border-top-right-radius: 20px;
-            border-bottom-left-radius: 0; border-bottom-right-radius: 0;
-            margin: 0; cursor: pointer; position: relative; z-index: 1;
-            display: flex; justify-content: center; align-items: center;
+            background-color: white;
+            border: none;
+            font-size: 12.5px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            color: #000;
+            flex: 1;
+            padding: 5px 0;
+            transition: background-color 0.2s, box-shadow 0.2s, z-index 0s;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            margin: 0;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             height: 60px;
         }
 
-        .bottom-nav button:first-child { margin-left: 0; }
-        .bottom-nav button:last-child { margin-right: 0; }
-        .bottom-nav button:hover { background-color: #e6f2ff; box-shadow: 0 2px 5px rgba(0,0,0,0.15); z-index: 2; }
+        .bottom-nav button:hover {
+            background-color: #e6f2ff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            z-index: 2;
+        }
         .bottom-nav button.active {
-            color: white; background-color: #007aff;
-            box-shadow: 0 2px 5px rgba(0, 122, 255, 0.3); z-index: 3;
+            color: white;
+            background-color: #007aff;
+            box-shadow: 0 2px 5px rgba(0, 122, 255, 0.3);
+            z-index: 3;
         }
 
-        .nav-icon { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .nav-icon img { width: 30px; height: 30px; transition: filter 0.75s; }
-        .bottom-nav button:nth-child(1):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.8); }
-        .bottom-nav button:nth-child(2):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.9); }
-        .bottom-nav button:nth-child(3):not(.active) .nav-icon img { filter: grayscale(100%) brightness(0.8); }
-        .bottom-nav button.active .nav-icon img { filter: none; }
+        .nav-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .nav-icon img {
+            width: 30px;
+            height: 30px;
+            transition: filter 0.75s;
+        }
+        .bottom-nav button:nth-child(1):not(.active) .nav-icon img {
+            filter: grayscale(100%) brightness(0.8);
+        }
+        .bottom-nav button:nth-child(2):not(.active) .nav-icon img {
+            filter: grayscale(100%) brightness(0.9);
+        }
+        .bottom-nav button:nth-child(3):not(.active) .nav-icon img {
+            filter: grayscale(100%) brightness(0.8);
+        }
+        .bottom-nav button.active .nav-icon img {
+            filter: none;
+        }
 
-        /* --- Main Content Area Styles --- */
-        .sticker-section { margin-bottom: 20px; }
-        .sticker-title { font-size: 25px; margin-bottom: 10px; }
+        /* Sticker Section Styles */
+        .sticker-section {
+            margin-bottom: 20px;
+        }
+        .sticker-title {
+            font-size: 25px;
+            margin-bottom: 10px;
+        }
 
+        /* Carousel Styles - Fixed spacing */
         #featured-sticker-container {
-            display: flex; overflow-x: auto;
-            width: 100%; padding-bottom: 10px; -webkit-overflow-scrolling: touch;
-            list-style: none; padding-left: 0; margin-bottom: 20px;
+            display: flex;
+            overflow-x: auto;
+            width: 100%;
+            padding-left: 16px;
+            padding-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
+            list-style: none;
+            margin-bottom: 0;
             cursor: grab;
-            /* ОСТАВЛЯЕМ СТАРЫЙ scroll-behavior */
             scroll-behavior: smooth;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        #featured-sticker-container.grabbing { cursor: grabbing; }
+        #featured-sticker-container::after {
+            content: '';
+            flex: 0 0 16px;
+        }
+        #featured-sticker-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        #featured-sticker-container.grabbing {
+            cursor: grabbing;
+        }
         .sticker-slide {
             flex: 0 0 85%;
-            box-sizing: border-box; padding: 0 8px; position: relative;
+            box-sizing: border-box;
+            margin-right: 16px;
+            position: relative;
         }
+        .sticker-slide:last-child {
+            margin-right: 0;
+        }
+
         #featured-sticker-container .sticker-slide > img {
-            width: 100%; height: auto; display: block; margin: 10px 0;
-            border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
             pointer-events: none;
         }
-        #featured-sticker-container::-webkit-scrollbar { display: none; }
-        #featured-sticker-container { -ms-overflow-style: none; scrollbar-width: none; }
+        #ethereon-exclusive-sticker > img { /* This style makes the image itself clickable if not for pointer-events: none on parent */
+            pointer-events: auto; /* Ensure the image within Ethereon sticker can be interacted with if needed, but click is on div */
+            cursor: pointer;
+        }
 
-        .sticker-creator-info { /* Стили создателя стикера */
-            display: flex; align-items: center;
-            margin-top: 10px; padding: 0 5px;
+
+        .sticker-creator-info {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            padding: 0 5px;
         }
         .creator-avatar {
-            width: 50px; height: 50px; border-radius: 50%;
-            margin-right: 8px; object-fit: cover; flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
         }
         .creator-name {
-            font-size: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: 550; color: #000000;
+            font-size: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            color: #000000;
         }
 
-        /* --- Collection / Profile Section Styles --- */
-        .collection-section { padding: 0; }
-        .my-stickers { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-top: 15px; }
-        .my-stickers img { width: 100%; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: block; }
+        /* Collection / Profile Section Styles */
+        .my-stickers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            padding: 0 16px; /* Added padding to match other sections */
+        }
+        .my-stickers img {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: block;
+        }
 
-        /* Стили для аватара пользователя */
         .user-profile-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             margin-bottom: 20px;
-            padding: 10px 0;
+            padding: 0 16px; /* Added padding */
         }
         .profile-avatar {
-            width: 125px; /* Размер из твоего кода */
-            height: 125px; /* Размер из твоего кода */
+            width: 125px;
+            height: 125px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid #ccc;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
             background-color: #eee;
-            user-select: none; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none;
+            user-select: none;
             pointer-events: none;
-            margin-bottom: 10px; /* Отступ под аватаром */
+            margin-bottom: 10px;
         }
-        .profile-name { /* Стили для имени */
+        .profile-name {
             display: block;
             font-size: 25px;
             font-weight: 600;
-            color: #000; /* Цвет из твоего кода */
+            color: #000;
             text-align: center;
             word-break: break-word;
-            margin-bottom: 1.5px; /* Отступ под именем */
+            margin-bottom: 1.5px;
         }
-        .profile-id { /* Стили для ID */
+        .profile-id {
             display: block;
             font-size: 14px;
-            color: #007aff; /* Цвет из твоего кода */
+            color: #007aff;
             text-align: center;
-            cursor: pointer; /* <<< ДОБАВЛЕНО: Указывает, что элемент кликабелен */
+            cursor: pointer;
         }
-        .profile-id:hover { /* <<< ДОБАВЛЕНО: Небольшое осветление при наведении */
-             filter: brightness(1.1);
+        .profile-id:hover {
+            filter: brightness(1.1);
         }
 
-
-        /* --- Popup Styles --- */
+        /* Popup Styles */
         .popup {
-            position: fixed; bottom: 0; left: 0; right: 0; width: 100%;
-            background-color: white; box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
             padding: 25px 20px calc(env(safe-area-inset-bottom, 20px) + 10px) 20px;
             z-index: 1000;
-            transform: translateY(100%); transition: transform 0.35s ease-out;
-            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            transform: translateY(100%);
+            transition: transform 0.35s ease-out;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
             text-align: center;
             max-height: 90vh;
             overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        .popup.show { transform: translateY(0); }
-        .popup-content { padding-bottom: 10px; }
-        .popup p { font-size: 16px; margin-bottom: 1px; color: #7f7f7f; font-weight: normal; }
-        .popup p.popup-title { font-size: 27.5px; margin-bottom: -5px; color: #000; font-weight: 550; }
-        .popup p.popup-unavailable { font-size: 27.5px; color: #000; font-weight: 550; margin-top: 0px; margin-bottom: 10px;}
+        .popup::-webkit-scrollbar {
+            display: none;
+        }
+
+        .popup.show {
+            transform: translateY(0);
+        }
+        .popup-content {
+            padding-bottom: 10px;
+        }
+        .popup p {
+            font-size: 16px;
+            margin-bottom: 1px;
+            color: #7f7f7f;
+            font-weight: normal;
+        }
+        .popup p.popup-title {
+            font-size: 27.5px;
+            margin-bottom: -5px;
+            color: #000;
+            font-weight: 550;
+        }
+        .popup p.popup-unavailable {
+            font-size: 27.5px;
+            color: #000;
+            font-weight: 550;
+            margin-top: 0px;
+            margin-bottom: 10px;
+        }
         .popup-close {
-            background-color: #007aff; color: white; border: none;
-            width: 100%; height: 50px; display: flex; align-items: center;
-            justify-content: center; font-size: 15px; transition: background-color 0.2s;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 550;
-            margin-top: 30px; border-radius: 10px; cursor: pointer;
+            background-color: #007aff;
+            color: white;
+            border: none;
+            width: 100%;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            transition: background-color 0.2s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            margin-top: 30px;
+            border-radius: 10px;
+            cursor: pointer;
         }
-        .popup-close:hover { background-color: #0056b3; }
+        .popup-close:hover {
+            background-color: #0056b3;
+        }
 
         .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.4); z-index: 999;
-            opacity: 0; visibility: hidden;
-            transition: opacity 0.35s ease-out, visibility 0s linear 0.35s;
-        }
-        .overlay.show { opacity: 1; visibility: visible; transition: opacity 0.35s ease-out, visibility 0s linear 0s; }
-
-        .no-ions-message { /* Стили для "нет ионов" */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-weight: 550; text-align: center; font-size: 20px;
-            color: #6c757d; margin-top: 15px; margin-bottom: 20px;
-        }
-
-        /* --- СТИЛИ ДЛЯ ПОДТВЕРЖДЕНИЯ КОПИРОВАНИЯ --- */
-        .copy-toast {
-            display: flex;
             position: fixed;
-            align-items: center; /* Вертикальное центрирование flex-элементов */
-            bottom: 75px; /* Выше нижней навигации */
-            left: 50%;
-            width: 95%;
-            height: 50px;
-            transform: translateX(-50%) translateY(10px); /* Начнем немного ниже */
-            background-color: #666;
-            color: white;
-            border-radius: 15px;
-            padding: 0px 12.5px; /* Паддинги влияют на пространство внутри */
-            font-size: 15px;
-            font-weight: 400; /* Немного тоньше основного */
-            z-index: 1001; /* Выше оверлея попапа */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 999;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.5s ease-out, transform 0.5s ease-out, visibility 0s linear 0.5s;
-            pointer-events: none; /* Не мешать кликам под ним */
-            /* white-space: nowrap; Убрано, если не нужно */
+            transition: opacity 0.35s ease-out, visibility 0s linear 0.35s;
         }
-
-        /* << ДОБАВЛЕНО: Стиль для изображения внутри тоста >> */
-        .copy-toast img {
-            height: 28px; /* Высота картинки (чуть меньше высоты плашки) */
-            margin-right: 10px; /* Отступ справа от картинки */
-            flex-shrink: 0; /* Не сжимать картинку */
-        }
-
-
-        .copy-toast.show {
+        .overlay.show {
             opacity: 1;
             visibility: visible;
-            transform: translateX(-50%) translateY(0); /* Поднимаем на место */
+            transition: opacity 0.35s ease-out, visibility 0s linear 0s;
+        }
+
+        .no-ions-message {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            text-align: center;
+            font-size: 20px;
+            color: #6c757d;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            padding: 0 16px;
+        }
+
+        .copy-toast {
+            display: flex; position: fixed; align-items: center;
+            bottom: 75px; left: 50%; width: 95%; height: 50px;
+            transform: translateX(-50%) translateY(10px);
+            background-color: #666; color: white; border-radius: 15px;
+            padding: 0px 12.5px; font-size: 15px; font-weight: 400;
+            z-index: 1001; opacity: 0; visibility: hidden;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out, visibility 0s linear 0.5s;
+            pointer-events: none;
+        }
+        .copy-toast img {
+            height: 28px; margin-right: 10px; flex-shrink: 0;
+        }
+        .copy-toast.show {
+            opacity: 1; visibility: visible;
+            transform: translateX(-50%) translateY(0);
             transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s linear 0s;
         }
+
+        /* === CSS ДЛЯ СТРАНИЦЫ ДЕТАЛЕЙ КОЛЛЕКЦИИ НАЧИНАЕТСЯ ЗДЕСЬ === */
+        #collection-detail-page {
+            padding: 0;
+            background-color: #ffffff;
+        }
+
+        .collection-detail-banner {
+            position: relative;
+            width: 100%;
+            height: 250px; /* Можно настроить высоту баннера, если необходимо */
+            background-color: #333; /* Цвет фона, если изображение не загрузится */
+            margin-bottom: 20px; /* Отступ снизу для аватара и контента */
+        }
+        .collection-detail-banner .banner-background-img {
+            width: 100%; height: 100%; object-fit: cover;
+            display: block;
+        }
+
+        .collection-detail-banner .banner-avatar-img {
+            position: absolute;
+            bottom: -30px; /* Позиционирование аватара так, чтобы он частично выходил за пределы баннера */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px; /* Размер аватара не изменен */
+            height: 100px; /* Размер аватара не изменен */
+            border-radius: 50%;
+            z-index: 3;
+            background-color: #ccc; /* Фон для аватара, если изображение не загрузится */
+            object-fit: cover;
+        }
+
+        /* .collection-detail-content-wrapper has padding: 16px from above */
+
+        .collection-detail-title-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        h1.collection-detail-name {
+            font-size: 27px;
+            font-weight: 500;
+            margin: 0;
+            text-align: center;
+        }
+        .collection-detail-name .verified-badge {
+            color: #007aff;
+            font-size: 18px;
+            margin-left: 5px;
+        }
+
+        .collection-detail-creator-share-line {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .collection-detail-full-creator-text {
+            display: inline;
+        }
+
+        .collection-detail-by-text {
+            font-size: 14px;
+            font-weight: 450;
+            color: #7f7f7f;
+        }
+
+        .collection-detail-creator-name-styled {
+            font-size: 14px;
+            font-weight: 450;
+            color: #007aff;
+            text-decoration: none;
+        }
+
+        .collection-detail-share-link {
+            font-size: 14px;
+            font-weight: 450;
+            color: #007aff;
+            text-decoration: none;
+        }
+        .collection-detail-share-icon { /* Style if needed */
+        }
+
+        .collection-detail-description {
+            font-size: 15px;
+            line-height: 1.5;
+            color: #000;
+            margin-bottom: 20px;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        .collection-detail-purchase-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .purchase-title-availability {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .collection-detail-purchase-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .collection-detail-availability {
+            font-size: 12px;
+            color: #555;
+            margin-top: 4px;
+        }
+
+        .collection-detail-get-button {
+            background-color: #fff5d4;
+            color: #ffa122;
+            border: none;
+            width: auto;
+            padding: 6px 15px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .collection-detail-sticker-previews {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .collection-detail-sticker-previews .sticker-preview-img {
+            width: calc((100% - 16px) / 3);
+            height: auto;
+            background-color: #e0e0e0;
+            border-radius: 15px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #777;
+            position: relative;
+        }
+
+        .collection-detail-sticker-previews .sticker-preview-img.actual-image {
+            background-color: transparent;
+            font-size: 0;
+        }
+
+        .sticker-more-overlay {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 25px;
+            font-size: 10px;
+            font-weight: 600;
+            line-height: 1.1;
+            text-align: center;
+            pointer-events: none;
+        }
+        /* === CSS ДЛЯ СТРАНИЦЫ ДЕТАЛЕЙ КОЛЛЕКЦИИ ЗАКАНЧИВАЕТСЯ ЗДЕСЬ === */
 
     </style>
 </head>
@@ -235,21 +585,23 @@
            <div class="sticker-section">
                <div class="sticker-title">Ethereon collections</div>
                <div class="sticker-grid" id="featured-sticker-container">
-                   <div class="sticker-slide">
-                       <img src="https://i.imgur.com/tBkD6dW.jpeg" alt="Ethereon Exclusive" draggable="false">
+                   <div class="sticker-slide" id="ethereon-exclusive-sticker">
+                       <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678436/Shop_jiqvjo.jpg" alt="Ethereon Exclusive" draggable="false">
                        <div class="sticker-creator-info">
-                           <img src="https://i.imgur.com/ffHaWEc.jpeg" alt="Creator Avatar" class="creator-avatar" draggable="false">
+                           <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678440/Ethereon_vx9bhr.jpg" alt="Creator Avatar" class="creator-avatar" draggable="false">
                            <span class="creator-name">Ethereon Exclusive</span>
                        </div>
                    </div>
                    <div class="sticker-slide">
-                       <img src="https://i.imgur.com/jNGlO3B.jpeg" alt="Ion Treasury" draggable="false">
+                       <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678513/IonTreasury_drlhs8.jpg" alt="Ion Treasury" draggable="false">
                        <div class="sticker-creator-info">
-                           <img src="https://i.imgur.com/eYFLmb6.jpeg" alt="Creator Avatar" class="creator-avatar" draggable="false">
+                           <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678516/IonTreasury0_cluncm.jpg" alt="Creator Avatar" class="creator-avatar" draggable="false">
                            <span class="creator-name">Ion Treasury</span>
                        </div>
                    </div>
                </div>
+           </div>
+           <div class="sticker-section">
                <div class="sticker-title">Best free ions</div>
                <p class="no-ions-message">No free ions available</p>
            </div>
@@ -269,25 +621,57 @@
                    <span id="user-id" class="profile-id"></span>
                </div>
                <div class="my-stickers">
+                </div>
+           </div>
+       </div>
+
+       <div id="collection-detail-page" class="page-content">
+           <div class="collection-detail-banner">
+               <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747876504/ShopDay0_rvkpyf.jpg" alt="Collection Banner Background" class="banner-background-img" draggable="false">
+               <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678440/Ethereon_vx9bhr.jpg" alt="Creator Avatar" class="banner-avatar-img" draggable="false">
+           </div>
+           <div class="collection-detail-content-wrapper">
+               <div class="collection-detail-title-section">
+                   <h1 class="collection-detail-name">Ethreon Exclusive<span class="verified-badge">✔</span></h1>
+                   <div class="collection-detail-creator-share-line">
+                       <span class="collection-detail-full-creator-text">
+                           <span class="collection-detail-by-text">by </span>
+                           <span class="collection-detail-creator-name-styled">Ethreon</span>
+                       </span>
+                       <a href="#" class="collection-detail-share-link"><span class="collection-detail-share-icon">⛓️‍💥</span> Share</a>
                    </div>
+               </div>
+               <p class="collection-detail-description">✴️ Ethereon Exclusive — 🪐 эксклюзивные артефакты из других вселенных, 🔮 уникальные и вне системы, 🚫 не встречаются в реальности, 💫 доступны только избранным.</p>
+               <div class="collection-detail-purchase-header">
+                   <div class="purchase-title-availability">
+                       <h2>Pack Details</h2> <span class="collection-detail-availability">Left 100 / 100</span>
+                   </div>
+                   <button class="collection-detail-get-button"> GET FOR 2222 </button>
+               </div>
+               <div class="collection-detail-sticker-previews">
+                   <div class="sticker-preview-img"> Sticker 1 </div>
+                   <div class="sticker-preview-img"> Sticker 2 </div>
+                   <div class="sticker-preview-img"> Sticker 3 <div class="sticker-more-overlay">7 MORE</div></div>
+               </div>
            </div>
        </div>
     </div>
 
     <div class="bottom-nav">
         <button onclick="showContent('nfts-content', this)" class="active">
-            <div class="nav-icon"> <img src="https://i.imgur.com/iLmlF6Z.png" alt="NFT" draggable="false"> <span>Ion Treasury</span> </div>
+            <div class="nav-icon"> <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678396/Crystal_df80ob.png" alt="NFT" draggable="false"> <span>Ion Treasury</span> </div>
         </button>
         <button onclick="openPopup('market-popup', this)">
-            <div class="nav-icon"> <img src="https://i.imgur.com/m5BKFIZ.png" alt="Market" draggable="false"> <span>Market</span> </div>
+            <div class="nav-icon"> <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678420/Market_emmeqg.png" alt="Market" draggable="false"> <span>Market</span> </div>
         </button>
         <button onclick="showContent('collection-content', this)">
-            <div class="nav-icon"> <img src="https://i.imgur.com/WvvEnks.png" alt="Collection" draggable="false"> <span>My Profile</span> </div> </button>
+            <div class="nav-icon"> <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678423/Heart_csx8vq.png" alt="Collection" draggable="false"> <span>My Profile</span> </div>
+        </button>
     </div>
 
     <div id="market-popup" class="popup">
         <div class="popup-content">
-            <img src="https://i.imgur.com/Hd1v5dY.gif" alt="Unavailable" class="popup-gif" style="width: 115px; height: 115px; display: block; margin: 0 auto 15px auto;" draggable="false">
+            <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678519/block_i9gxmt.gif" alt="Unavailable" class="popup-gif" style="width: 115px; height: 115px; display: block; margin: 0 auto 15px auto;" draggable="false">
             <p class="popup-title">Market Temporarily</p>
             <p class="popup-unavailable">Unavailable</p>
             <p>You can't sell unique ions right now.</p>
@@ -298,11 +682,11 @@
     <div id="popup-overlay" class="overlay" onclick="closePopup('market-popup')"></div>
 
     <div id="copy-toast" class="copy-toast">
-        <img src="https://i.imgur.com/8fyCRK8.gif" alt="" draggable="false"> Copied to clipboard!
+        <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678523/chpic.su_-_ColorfulFontEmoji_053-ezgif.com-gif-maker_lwk6lg.gif" alt="" draggable="false"> Copied to clipboard!
     </div>
 
     <script>
-        // --- Старые функции управления попапами и контентом (без изменений) ---
+        // Ваш JavaScript код
         function closeAllPopups() {
             const popupIds = ['market-popup'];
             popupIds.forEach(id => {
@@ -314,11 +698,32 @@
             closeAllPopups();
             const contentSections = document.querySelectorAll('.page-content');
             const buttons = document.querySelectorAll('.bottom-nav button');
+
             contentSections.forEach(section => { section.classList.remove('active'); });
             buttons.forEach(button => { button.classList.remove('active'); });
+
             const targetContent = document.getElementById(contentId);
             if(targetContent) { targetContent.classList.add('active'); }
-            if(clickedButton) { clickedButton.classList.add('active'); }
+
+            if(clickedButton && Array.from(buttons).includes(clickedButton)) {
+                clickedButton.classList.add('active');
+            } else if (contentId === 'nfts-content') {
+                const nftsButton = document.querySelector('.bottom-nav button[onclick*="nfts-content"]');
+                if (nftsButton) nftsButton.classList.add('active');
+            } else if (contentId === 'collection-content') {
+                const collectionButton = document.querySelector('.bottom-nav button[onclick*="collection-content"]');
+                if (collectionButton) collectionButton.classList.add('active');
+            }
+            else if (contentId === 'collection-detail-page') {
+                const nftsButton = document.querySelector('.bottom-nav button[onclick*="nfts-content"]');
+                if (nftsButton) nftsButton.classList.add('active');
+            }
+
+            const mainContentArea = document.querySelector('.content');
+            mainContentArea.style.overflowY = 'auto';
+            document.body.style.overflow = 'hidden';
+
+            mainContentArea.scrollTop = 0;
         }
         function openPopup(popupId) {
              const popup = document.getElementById(popupId);
@@ -327,39 +732,39 @@
                  overlay.classList.add('show');
                  popup.classList.add('show');
                  document.body.style.overflow = 'hidden';
+                 document.querySelector('.content').style.overflowY = 'hidden';
              }
          }
         function closePopup(popupId) {
-              const popup = document.getElementById(popupId);
-              const overlay = document.getElementById('popup-overlay');
-              if (popup && overlay) {
-                  overlay.classList.remove('show');
-                  popup.classList.remove('show');
-                  document.body.style.overflow = 'hidden'; // Оставляем 'hidden' так как основное тело не скроллится
-              }
+             const popup = document.getElementById(popupId);
+             const overlay = document.getElementById('popup-overlay');
+             if (popup && overlay) {
+                 overlay.classList.remove('show');
+                 popup.classList.remove('show');
+                 const anyPopupShown = Array.from(document.querySelectorAll('.popup.show')).length > 0;
+                 if (!anyPopupShown) {
+                     document.querySelector('.content').style.overflowY = 'auto';
+                 }
+                 // document.body.style.overflow = 'hidden'; // This was already set, should remain hidden unless all content needs scroll
+             }
          }
 
-         // --- Функция для отображения тоста ---
-         let toastTimeout; // Переменная для хранения ID таймера
-         function showCopyToast() {
-            const toast = document.getElementById('copy-toast');
-            if (toast) {
-                // Если уже есть активный таймер, отменяем его
-                if (toastTimeout) {
-                    clearTimeout(toastTimeout);
-                }
-                toast.classList.add('show');
-                // Устанавливаем новый таймер для скрытия
-                toastTimeout = setTimeout(() => {
-                    toast.classList.remove('show');
-                    toastTimeout = null; // Сбрасываем ID таймера
-                }, 2000); // Показываем на 2 секунды
-            }
+        let toastTimeout;
+        function showCopyToast() {
+         const toast = document.getElementById('copy-toast');
+         if (toast) {
+             if (toastTimeout) {
+                 clearTimeout(toastTimeout);
+             }
+             toast.classList.add('show');
+             toastTimeout = setTimeout(() => {
+                 toast.classList.remove('show');
+                 toastTimeout = null;
+             }, 2000);
          }
+        }
 
-        // --- Инициализация и основная логика ---
         document.addEventListener('DOMContentLoaded', () => {
-
             const tg = window.Telegram.WebApp;
 
             function displayUserInfo() {
@@ -368,20 +773,16 @@
                     const avatarElement = document.getElementById('user-avatar');
                     const nameElement = document.getElementById('user-name');
                     const idElement = document.getElementById('user-id');
-                    const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
 
-                    // Установка аватара
                     if (avatarElement) {
                         if (user?.photo_url) {
                             avatarElement.src = user.photo_url;
                         } else {
-                            avatarElement.src = defaultAvatar;
-                            console.log('User photo URL not available.');
+                            avatarElement.src = '';
                         }
                         avatarElement.alt = user ? `${user.first_name || ''} ${user.last_name || ''}'s Avatar`.trim() : 'User Avatar';
                     } else { console.error('Avatar element (#user-avatar) not found.'); }
 
-                    // Установка имени пользователя
                     if (nameElement) {
                         if (user) {
                             const firstName = user.first_name || '';
@@ -392,43 +793,32 @@
                         }
                     } else { console.error('Name element (#user-name) not found.'); }
 
-                    // Установка ID пользователя и ДОБАВЛЕНИЕ ОБРАБОТЧИКА КЛИКА
                     if (idElement) {
-                        let userId = 'Unknown'; // Значение по умолчанию
+                        let userId = 'Unknown';
                         if (user?.id) {
-                             userId = user.id.toString(); // Сохраняем чистое ID
-                             idElement.textContent = `ID ${userId}`;
+                            userId = user.id.toString();
+                            idElement.textContent = `ID ${userId}`;
                         } else {
-                             idElement.textContent = 'ID Unknown';
+                            idElement.textContent = 'ID Unknown';
                         }
-
-                        // <<< НАЧАЛО ДОБАВЛЕННОГО КОДА ДЛЯ КОПИРОВАНИЯ >>>
                         idElement.addEventListener('click', () => {
-                            const textToCopy = idElement.textContent; // Берем текст, который виден
-                            if (textToCopy) { // Если текст вообще есть
+                            const textToCopy = idElement.textContent;
+                            if (textToCopy) {
                                 navigator.clipboard.writeText(textToCopy).then(() => {
-                                    // Успешно скопировано (или нет) - не важно, показываем тост
-                                    console.log('Text copied attempt:', textToCopy);
-                                    showCopyToast(); // Показываем тост в любом случае
+                                    showCopyToast();
                                 }).catch(err => {
-                                    // Ошибка копирования - все равно показываем тост
                                     console.error('Failed to copy text, but showing toast anyway: ', err);
                                     showCopyToast();
                                 });
                             }
                         });
-                        // КОНЕЦ ЗАМЕНЫ
-
                     } else { console.error('ID element (#user-id) not found.'); }
-
                 } catch (error) {
                     console.error('Error accessing Telegram user data:', error);
-                    // Установка дефолтных значений при ошибке
                     const avatarElement = document.getElementById('user-avatar');
                     const nameElement = document.getElementById('user-name');
                     const idElement = document.getElementById('user-id');
-                    const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
-                    if (avatarElement) { avatarElement.src = defaultAvatar; }
+                    if (avatarElement) { avatarElement.src = ''; }
                     if (nameElement) { nameElement.textContent = 'User'; }
                     if (idElement) { idElement.textContent = 'ID: Error'; }
                 }
@@ -436,160 +826,217 @@
 
             if (tg) {
                 tg.ready();
-                displayUserInfo(); // Вызываем функцию для отображения данных
+                displayUserInfo();
                 tg.expand();
             } else {
                 console.error('Telegram WebApp script not loaded or object not found.');
-                 // Ставим дефолтные значения, если ТГ объект не найден
-                 const avatarElement = document.getElementById('user-avatar');
-                 const nameElement = document.getElementById('user-name');
-                 const idElement = document.getElementById('user-id');
-                 const defaultAvatar = 'https://i.imgur.com/zlS9NVk.png';
-                 if (avatarElement) { avatarElement.src = defaultAvatar; }
-                 if (nameElement) { nameElement.textContent = 'User'; }
-                 if (idElement) { idElement.textContent = 'ID: Unknown'; }
-            }
-            // КОНЕЦ ЛОГИКИ TELEGRAM
-
-            // Код инициализации активной кнопки/контента (без изменений)
-            const initialActiveButton = document.querySelector('.bottom-nav button.active');
-            if (!initialActiveButton) {
-                 const firstButton = document.querySelector('.bottom-nav button');
-                  if (firstButton && firstButton.getAttribute('onclick')?.includes('showContent')) {
-                      const onclickString = firstButton.getAttribute('onclick');
-                      const match = onclickString.match(/showContent\('([^']*)'/);
-                      if (match && match[1]) {
-                          showContent(match[1], firstButton);
-                      }
-                  } else {
-                      const firstContentButton = document.querySelector('.bottom-nav button[onclick*="showContent"]');
-                       if (firstContentButton) {
-                           const onclickString = firstContentButton.getAttribute('onclick');
-                           const match = onclickString.match(/showContent\('([^']*)'/);
-                           if (match && match[1]) { showContent(match[1], firstContentButton); }
-                       }
-                  }
-            } else {
-                 const currentContentId = initialActiveButton.getAttribute('onclick').match(/showContent\('([^']*)'/)[1];
-                 showContent(currentContentId, initialActiveButton);
+                const avatarElement = document.getElementById('user-avatar');
+                const nameElement = document.getElementById('user-name');
+                const idElement = document.getElementById('user-id');
+                if (avatarElement) { avatarElement.src = ''; }
+                if (nameElement) { nameElement.textContent = 'User'; }
+                if (idElement) { idElement.textContent = 'ID: Unknown'; }
             }
 
+            const ethereonStickerSlide = document.getElementById('ethereon-exclusive-sticker');
+            const mainSlider = document.getElementById('featured-sticker-container'); // Renamed to avoid conflict
+            let ethereonIsBeingDragged = false; // This flag is set by original Ethereon logic on any mouse move
+            let ethereonPointerDownOnSticker = false;
+            let ethereonSticker_initialSliderScrollLeft; // ** NEW ** Stores slider scrollLeft on mousedown/touchstart
+            const CLICK_SCROLL_THRESHOLD = 5; // ** NEW ** Max slider scroll to still be considered a click
 
-            // --- СТАРАЯ ЛОГИКА Drag-to-scroll и Snap-on-Release (БЕЗ ИЗМЕНЕНИЙ) ---
-            const slider = document.getElementById('featured-sticker-container');
-            if (slider) {
-                let isDown = false;
-                let startX;
-                let scrollLeft;
-                let isDragging = false;
-
-                const snapToNearestSlide = () => {
-                    const slides = slider.querySelectorAll('.sticker-slide');
-                    // Эта логика пока рассчитана ровно на 2 слайда.
-                    if (slides.length !== 2) {
-                        console.warn("Snap logic currently optimized for exactly 2 slides.");
-                        if (slides.length > 0) { // Fallback to old logic for > 2 slides
-                            const slideWidth = slides[0].offsetWidth;
-                            const currentScroll = slider.scrollLeft;
-                            let targetIndex = Math.round(currentScroll / slideWidth);
-                            targetIndex = Math.max(0, Math.min(targetIndex, slides.length - 1));
-                            const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
-                            slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
-                        }
-                        return;
+            if (ethereonStickerSlide && mainSlider) { // Ensure mainSlider (featured-sticker-container) is also found
+                const onEthereonPointerMove = () => {
+                    if (ethereonPointerDownOnSticker) {
+                        ethereonIsBeingDragged = true; // Original logic: sets true on *any* move
+                        window.removeEventListener('mousemove', onEthereonPointerMove);
+                        window.removeEventListener('touchmove', onEthereonPointerMove);
                     }
-
-                    const slideWidth = slides[0].offsetWidth; // Ширина слайда
-                    const containerWidth = slider.offsetWidth; // Ширина видимой области
-                    const currentScroll = slider.scrollLeft; // Текущая прокрутка
-                    const center0 = slides[0].offsetLeft - slider.offsetLeft + slideWidth / 2;
-                    const center1 = slides[1].offsetLeft - slider.offsetLeft + slideWidth / 2;
-                    const midpointBetweenSlides = (center0 + center1) / 2;
-                    const viewportCenter = currentScroll + containerWidth / 2;
-                    let targetIndex;
-                    if (viewportCenter < midpointBetweenSlides) {
-                        targetIndex = 0;
-                    } else {
-                        targetIndex = 1;
-                    }
-                    const targetScrollLeft = slides[targetIndex].offsetLeft - slider.offsetLeft;
-                    slider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
                 };
 
-                slider.addEventListener('mousedown', (e) => {
+                const onEthereonPointerUp = () => {
+                    ethereonPointerDownOnSticker = false;
+                    window.removeEventListener('mousemove', onEthereonPointerMove);
+                    window.removeEventListener('mouseup', onEthereonPointerUp);
+                    window.removeEventListener('touchmove', onEthereonPointerMove);
+                    window.removeEventListener('touchend', onEthereonPointerUp);
+                    window.removeEventListener('touchcancel', onEthereonPointerUp);
+                };
+
+                ethereonStickerSlide.addEventListener('mousedown', (event) => {
+                    if (event.target.closest('#ethereon-exclusive-sticker')) {
+                        ethereonIsBeingDragged = false;
+                        ethereonPointerDownOnSticker = true;
+                        ethereonSticker_initialSliderScrollLeft = mainSlider.scrollLeft; // ** MODIFIED HERE **
+                        window.addEventListener('mousemove', onEthereonPointerMove);
+                        window.addEventListener('mouseup', onEthereonPointerUp);
+                    }
+                });
+
+                ethereonStickerSlide.addEventListener('touchstart', (event) => {
+                    if (event.target.closest('#ethereon-exclusive-sticker')) {
+                        ethereonIsBeingDragged = false;
+                        ethereonPointerDownOnSticker = true;
+                        ethereonSticker_initialSliderScrollLeft = mainSlider.scrollLeft; // ** MODIFIED HERE **
+                        window.addEventListener('touchmove', onEthereonPointerMove, { passive: true });
+                        window.addEventListener('touchend', onEthereonPointerUp);
+                        window.addEventListener('touchcancel', onEthereonPointerUp);
+                    }
+                }, { passive: true });
+
+                ethereonStickerSlide.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const finalSliderScrollLeft = mainSlider.scrollLeft;
+                    const sliderMovedAmount = Math.abs(finalSliderScrollLeft - ethereonSticker_initialSliderScrollLeft);
+
+                    // ** MODIFIED CONDITION FOR NAVIGATION **
+                    if (sliderMovedAmount < CLICK_SCROLL_THRESHOLD) {
+                        const nftsButton = document.querySelector('.bottom-nav button[onclick*="nfts-content"]');
+                        showContent('collection-detail-page', nftsButton);
+                    }
+                    // Reset ethereonIsBeingDragged for consistency, though not the primary factor for click anymore
+                    ethereonIsBeingDragged = false;
+                });
+            } else {
+                if (!ethereonStickerSlide) console.error("Ethereon sticker slide not found for click listener.");
+                if (!mainSlider) console.error("Featured sticker container (mainSlider) not found for Ethereon click logic.");
+            }
+
+            const initialActiveButton = document.querySelector('.bottom-nav button.active');
+            if (!initialActiveButton) {
+                const firstButton = document.querySelector('.bottom-nav button');
+                if (firstButton && firstButton.getAttribute('onclick')?.includes('showContent')) {
+                    const onclickString = firstButton.getAttribute('onclick');
+                    const match = onclickString.match(/showContent\('([^']*)'/);
+                    if (match && match[1]) {
+                        showContent(match[1], firstButton);
+                    }
+                } else { // Fallback if first button is not a showContent button
+                    const firstContentButton = document.querySelector('.bottom-nav button[onclick*="showContent"]');
+                    if (firstContentButton) {
+                        const onclickString = firstContentButton.getAttribute('onclick');
+                        const match = onclickString.match(/showContent\('([^']*)'/);
+                        if (match && match[1]) { showContent(match[1], firstContentButton); }
+                    }
+                }
+            } else {
+                // If there's an active button, ensure its content is shown (e.g. on page load/refresh)
+                const currentContentIdMatch = initialActiveButton.getAttribute('onclick')?.match(/showContent\('([^']*)'/);
+                if (currentContentIdMatch && currentContentIdMatch[1]) {
+                    showContent(currentContentIdMatch[1], initialActiveButton);
+                } else { // Fallback if active button is not a showContent one (e.g. a popup opener)
+                     const firstContentButton = document.querySelector('.bottom-nav button[onclick*="showContent"]');
+                     if (firstContentButton) {
+                         const onclickString = firstContentButton.getAttribute('onclick');
+                         const match = onclickString.match(/showContent\('([^']*)'/);
+                         if (match && match[1]) { showContent(match[1], firstContentButton); }
+                     }
+                }
+            }
+
+            // === SLIDER LOGIC FROM SCRIPT 2 - START ===
+            // Using 'mainSlider' which is document.getElementById('featured-sticker-container')
+            if (mainSlider) {
+                let isDown = false;
+                let startX;
+                let scrollLeftVal; // Renamed to avoid conflict with global scrollLeft
+                let isDragging = false;
+                let clickThreshold = 5; // Threshold for distinguishing click from drag
+
+                const snapToNearestSlide = () => {
+                    const slides = Array.from(mainSlider.querySelectorAll('.sticker-slide'));
+                    if (!slides.length) return;
+
+                    const firstSlideOffset = slides[0] ? slides[0].offsetLeft : 0;
+                    let bestSnapIndex = 0;
+                    let smallestDiff = Infinity;
+
+                    for (let i = 0; i < slides.length; i++) {
+                        const slideTargetScroll = slides[i].offsetLeft - firstSlideOffset;
+                        const diff = Math.abs(mainSlider.scrollLeft - slideTargetScroll);
+
+                        if (diff < smallestDiff) {
+                            smallestDiff = diff;
+                            bestSnapIndex = i;
+                        }
+                    }
+                    const targetScrollLeft = slides[bestSnapIndex].offsetLeft - firstSlideOffset;
+                    mainSlider.scrollTo({ left: targetScrollLeft, behavior: 'smooth' });
+                };
+
+                mainSlider.addEventListener('mousedown', (e) => {
                     isDown = true;
                     isDragging = false;
-                    slider.classList.add('grabbing');
-                    startX = e.pageX - slider.offsetLeft;
-                    scrollLeft = slider.scrollLeft;
-                    slider.style.scrollBehavior = 'auto';
+                    mainSlider.classList.add('grabbing');
+                    startX = e.pageX - mainSlider.getBoundingClientRect().left;
+                    scrollLeftVal = mainSlider.scrollLeft;
+                    mainSlider.style.scrollBehavior = 'auto';
                 });
 
                 window.addEventListener('mouseup', () => {
-                    if (!isDown) return;
+                    if (!isDown || !mainSlider.classList.contains('grabbing')) return; // Check if mouseup is for this slider
                     isDown = false;
-                    slider.classList.remove('grabbing');
-                    slider.style.scrollBehavior = 'smooth';
-                    if (isDragging) { snapToNearestSlide(); }
+                    mainSlider.classList.remove('grabbing');
+                    mainSlider.style.scrollBehavior = 'smooth';
+                    if(isDragging) { // Only snap if actual dragging occurred
+                       snapToNearestSlide();
+                    }
                 });
 
                 window.addEventListener('mousemove', (e) => {
-                    if (!isDown) return;
-                    e.preventDefault();
-                    isDragging = true;
-                    const x = e.pageX - slider.offsetLeft;
+                    if (!isDown || !mainSlider.classList.contains('grabbing')) return; // Check if mousemove is for this slider
+                    const x = e.pageX - mainSlider.getBoundingClientRect().left;
                     const walk = x - startX;
-                    slider.scrollLeft = scrollLeft - walk;
+                    if (Math.abs(walk) > clickThreshold) {
+                        isDragging = true;
+                    }
+                    if (isDragging) {
+                        mainSlider.scrollLeft = scrollLeftVal - walk;
+                    }
                 });
 
-                // --- Обработка Touch событий (СТАРАЯ) ---
                 let touchStartX = 0;
                 let touchScrollLeft = 0;
 
-                slider.addEventListener('touchstart', (e) => {
+                mainSlider.addEventListener('touchstart', (e) => {
                     isDown = true;
-                    isDragging = false;
-                    touchStartX = e.touches[0].pageX - slider.offsetLeft;
-                    touchScrollLeft = slider.scrollLeft;
-                    slider.style.scrollBehavior = 'auto';
+                    isDragging = false; // Reset for touch
+                    mainSlider.classList.add('grabbing'); // Visual feedback for touch
+                    touchStartX = e.touches[0].pageX - mainSlider.getBoundingClientRect().left;
+                    touchScrollLeft = mainSlider.scrollLeft;
+                    mainSlider.style.scrollBehavior = 'auto';
                 }, { passive: true });
 
-                window.addEventListener('touchend', (event) => {
-                     if (!isDown) return;
-                     let touchendOnSlider = slider.contains(event.target);
-                     // Check if touchend happened outside the slider AND was not a drag
-                     // This check might need adjustment depending on exact desired behavior
-                     // The original logic seemed to potentially stop snap if touchend was outside slider even after a drag
-                     // Simplified: we only care if a drag happened
-                     isDown = false;
-                     slider.style.scrollBehavior = 'smooth';
-                     if (isDragging) {
-                         snapToNearestSlide();
-                     }
-                });
-
-
-                window.addEventListener('touchcancel', () => {
+                window.addEventListener('touchend', (e) => { // Check if the touchend corresponds to this slider
+                    // A bit harder to check if touchend is "for this slider" if it happens outside.
+                    // For now, assume if isDown is true, it's for this slider.
                     if (!isDown) return;
                     isDown = false;
-                    slider.style.scrollBehavior = 'smooth';
-                    // Optionally snap here as well, or just reset state
+                    mainSlider.classList.remove('grabbing');
+                    mainSlider.style.scrollBehavior = 'smooth';
+                     if(isDragging) { // Only snap if actual dragging occurred
+                       snapToNearestSlide();
+                    }
                 });
+
 
                 window.addEventListener('touchmove', (e) => {
                     if (!isDown) return;
-                    isDragging = true; // Mark as dragging on first move
-                    const x = e.touches[0].pageX - slider.offsetLeft;
+                    const x = e.touches[0].pageX - mainSlider.getBoundingClientRect().left;
                     const walk = x - touchStartX;
-                    slider.scrollLeft = touchScrollLeft - walk;
-                }, { passive: true }); // Passive is important for scroll performance
+                     if (Math.abs(walk) > clickThreshold) { // Set isDragging for touch as well
+                        isDragging = true;
+                    }
+                    if(isDragging){ // Only scroll if dragging
+                        mainSlider.scrollLeft = touchScrollLeft - walk;
+                    }
+                }, { passive: true });
 
             } else {
-                console.error("Slider element #featured-sticker-container not found.");
+                console.error("Slider element #featured-sticker-container not found for general slider logic.");
             }
-            // --- КОНЕЦ СТАРОЙ ЛОГИКИ СЛАЙДЕРА ---
-
-        }); // Конец DOMContentLoaded
+            // === SLIDER LOGIC FROM SCRIPT 2 - END ===
+        });
     </script>
 </body>
 </html>
