@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ethereon Shop Maintenance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: "Inter", "Segoe UI", sans-serif; /* Используется Inter, резервный шрифт Segoe UI */
+    }
+    /* Пользовательские стили для анимации и улучшения внешнего вида */
+    .btn-sparkle {
+      transition: all 0.3s ease;
+    }
+    .btn-sparkle:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+    .response-card {
+      transition: opacity 0.5s ease-in-out;
+    }
+    .loader {
+      border: 4px solid #e5e7eb; /* Светло-серый для фона загрузчика */
+      border-top: 4px solid #3b82f6; /* Синий для анимации загрузчика */
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-white text-black flex flex-col items-center justify-center min-h-screen p-6 text-center">
+  <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748475308/Ion_zfbmwr.png" alt="Ethereon Logo" class="max-w-[120px] mx-auto mb-6 user-select-none" />
+  <h1 class="text-3xl font-normal mb-3">Ethereon Shop is currently closed for maintenance!</h1>
+  <p class="text-lg font-normal mb-8">We’ll be back online shortly, better than ever.</p>
+
+  <div class="mt-8 border-t border-gray-300 pt-8 w-full max-w-md"> <h2 class="text-xl font-normal mb-4">Curious about what's next?</h2>
+    <button id="geminiButton" class="btn-sparkle bg-sky-500 hover:bg-sky-600 text-white font-semibold py-3 px-6 rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-sky-400 focus:ring-opacity-75">
+      ✨ Get a Sneak Peek!
+    </button>
+    <div id="loader" class="loader hidden my-4"></div>
+    <div id="geminiResponse" class="response-card mt-6 p-4 bg-white min-h-[50px] text-black opacity-0 transition-opacity duration-500">
+      </div>
+  </div>
+
+  <script>
+    // Получение ссылок на кнопку, div для ответа и загрузчик
+    const geminiButton = document.getElementById('geminiButton');
+    const geminiResponseDiv = document.getElementById('geminiResponse');
+    const loader = document.getElementById('loader');
+
+    // Обработчик события для клика по кнопке
+    geminiButton.addEventListener('click', async () => {
+      // Показать загрузчик и скрыть предыдущий ответ
+      loader.classList.remove('hidden');
+      geminiResponseDiv.classList.add('opacity-0');
+      geminiResponseDiv.textContent = ''; // Очистить предыдущее содержимое
+      geminiButton.disabled = true; // Отключить кнопку во время вызова API
+
+      // Определить промпт для Gemini API
+      const prompt = "Generate a short, exciting, and slightly mysterious announcement (2-3 sentences, max 50 words) about upcoming features or products for an online shop called 'Ethereon' which is currently under maintenance. Hint at something amazing and new coming soon. Keep the tone enthusiastic and intriguing.";
+
+      // Подготовить полезную нагрузку для Gemini API
+      let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+      const payload = { contents: chatHistory };
+      const apiKey = "AIzaSyBtAll-jZKIYergUjw9Q8HbApppVtOUbc0"; // API ключ будет внедрен средой при необходимости для других моделей
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+      try {
+        // Сделать вызов API
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          // Обработать HTTP ошибки
+          const errorBody = await response.text();
+          console.error('API Error Response:', errorBody);
+          throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        // Обработать ответ API
+        if (result.candidates && result.candidates.length > 0 &&
+            result.candidates[0].content && result.candidates[0].content.parts &&
+            result.candidates[0].content.parts.length > 0) {
+          const text = result.candidates[0].content.parts[0].text;
+          geminiResponseDiv.textContent = text; // Отобразить сгенерированный текст
+        } else {
+          // Обработать случаи, когда структура ответа неожиданная
+          console.error('Unexpected API response structure:', result);
+          geminiResponseDiv.textContent = 'Could not retrieve a sneak peek at this time. Please try again later.';
+        }
+      } catch (error) {
+        // Обработать ошибки во время вызова API
+        console.error('Error fetching sneak peek:', error);
+        geminiResponseDiv.textContent = 'Oops! Something went wrong while trying to get a sneak peek. Please check the console for details.';
+      } finally {
+        // Скрыть загрузчик и показать ответ
+        loader.classList.add('hidden');
+        geminiResponseDiv.classList.remove('opacity-0');
+        geminiButton.disabled = false; // Повторно включить кнопку
+      }
+    });
+  </script>
+</body>
+</html>
