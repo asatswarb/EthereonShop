@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { height: 100vh; overflow: hidden !important; }
+        body { height: 100%; margin: 0; display: flex; flex-direction: column; background-color: white; font-family: Arial, sans-serif; overflow: hidden; }
+        .content-wrapper { flex: 1; width: 100%; display: flex; align-items: center; justify-content: center; text-align: center; transition: filter 0s; overflow: hidden; filter: blur(4px); }
+        .page-content { display: none; }
+        .page-content.active { display: flex; }
+        .coming-soon { font-size: 10vw; font-weight: bold; color: transparent; background: linear-gradient(to right, #714BB9, #D43417); -webkit-background-clip: text; background-clip: text; text-align: center; }
+        @media (min-width: 1200px) { .coming-soon { font-size: 120px; } }
+        @media (max-width: 600px) { .coming-soon { font-size: 15vw; } }
+        #page-transition-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #ffffff; z-index: 9999; opacity: 1; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+  <div id="coming-soon-content-wrapper" class="content-wrapper page-content">
+    <div class="coming-soon">
+        Coming Soon
+    </div>
+  </div>
+
+  <div id="page-transition-overlay"></div>
+
+  <script>
+    let isInitialPageLoad = true;
+
+    function triggerPageTransition(callbackToExecuteDuringTransition) {
+        const transitionOverlay = document.getElementById('page-transition-overlay');
+        const mainContentArea = document.querySelector('#coming-soon-content-wrapper');
+
+        if (!transitionOverlay || !mainContentArea) {
+            if (callbackToExecuteDuringTransition && typeof callbackToExecuteDuringTransition === 'function') {
+                callbackToExecuteDuringTransition();
+            }
+            if (isInitialPageLoad) {
+                isInitialPageLoad = false;
+            }
+            return;
+        }
+
+        if (isInitialPageLoad) {
+            if (callbackToExecuteDuringTransition && typeof callbackToExecuteDuringTransition === 'function') {
+                callbackToExecuteDuringTransition();
+            }
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (transitionOverlay) {
+                        transitionOverlay.style.transition = 'opacity 0.15s ease-out';
+                        transitionOverlay.style.opacity = '0';
+                    }
+                    setTimeout(() => {
+                        if (mainContentArea) {
+                            mainContentArea.style.transition = 'filter 0.15s ease-out';
+                            mainContentArea.style.filter = 'none';
+                        }
+                    }, 150);
+                });
+            });
+            isInitialPageLoad = false;
+        } else {
+            mainContentArea.style.transition = 'filter 0s';
+            mainContentArea.style.filter = 'blur(1.5px)';
+            transitionOverlay.style.transition = 'none';
+            transitionOverlay.style.opacity = '1';
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (callbackToExecuteDuringTransition && typeof callbackToExecuteDuringTransition === 'function') {
+                        callbackToExecuteDuringTransition();
+                    }
+                    transitionOverlay.style.transition = 'opacity 0.15s ease-out';
+                    transitionOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        if (mainContentArea) {
+                            mainContentArea.style.transition = 'filter 0s';
+                            mainContentArea.style.filter = 'none';
+                        }
+                    }, 150);
+                });
+            });
+        }
+    }
+    
+    function closeAllPopups() {}
+
+    function showContent(contentId, clickedButton) {
+        const targetContent = document.getElementById(contentId);
+        if (targetContent && targetContent.classList.contains('active') && !isInitialPageLoad) {
+            return;
+        }
+        const switchLogic = () => {
+            closeAllPopups();
+            document.querySelectorAll('.page-content').forEach(section => {
+                if (section.id !== contentId) {
+                    section.classList.remove('active');
+                }
+            });
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+        };
+        triggerPageTransition(switchLogic);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const tg = window.Telegram && window.Telegram.WebApp;
+
+        if (tg) { 
+            try {
+                tg.ready(); 
+
+                if (tg.BackButton) { 
+                    const backButton = tg.BackButton;
+
+                    backButton.show(); 
+
+                    backButton.onClick(() => { 
+                        window.location.href = '../index.html'; 
+                    });
+
+                    window.addEventListener('beforeunload', () => { 
+                        if (tg.BackButton) { 
+                            tg.BackButton.hide();
+                        }
+                    });
+                }
+            } catch (e) { 
+                console.error("Telegram SDK error:", e); 
+            }
+        } else {
+            console.warn("Telegram WebApp API not available. BackButton will not function.");
+        }
+        
+        showContent('coming-soon-content-wrapper', null);
+    });
+  </script>
+</body>
+</html>

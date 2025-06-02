@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Seed of the Lost Core</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * {
+      user-select: none;
+      font-family: "Segoe UI", sans-serif;
+      box-sizing: border-box;
+    }
+
+    html {
+      height: 100vh;
+      overflow: hidden !important;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      height: 100%;
+      overflow: hidden;
+      margin: 0;
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    body::-webkit-scrollbar {
+      display: none;
+    }
+
+    .content-wrapper-for-transition {
+      flex: 1;
+      overflow-y: auto;
+      position: relative;
+      transition: filter 0s;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      filter: blur(4px);
+    }
+    .content-wrapper-for-transition::-webkit-scrollbar {
+        display: none;
+    }
+
+    header {
+      padding: 16px 16px;
+      background-color: white;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .title {
+      font-size: 22.5px;
+      font-weight: 600;
+      user-select: text;
+    }
+
+    .share-button {
+      background: none;
+      border: none;
+      cursor: default;
+      padding: 0;
+      line-height: 0;
+    }
+
+    .share-button img {
+      height: 20px;
+      width: auto;
+      display: block;
+    }
+
+    .subtitle-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 5px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      font-weight: 500;
+      color: #000;
+    }
+
+    .check {
+      color: #007aff;
+      font-size: 14px;
+    }
+
+    .description-text {
+      color: #000;
+      font-size: 14px;
+      user-select: text;
+      margin-top: 10px;
+      margin-bottom: 15px;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .left-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+    }
+
+    .nft-wrapper {
+      position: relative;
+    }
+
+    .nft-button {
+      background-color: #fff5d4;
+      border: none;
+      border-radius: 10px;
+      padding: 2px 12px;
+      font-weight: 600;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .nft-text {
+      background: linear-gradient(90deg, #fbcd2d, #eb9209);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .left-tag {
+      background-color: #f2f2f2;
+      border-radius: 10px;
+      padding: 2px 5px;
+      font-size: 12px;
+      display: inline-block;
+    }
+
+    .left-text {
+      color: #797979;
+      user-select: text;
+    }
+
+    .left-count {
+      color: #000;
+      user-select: text;
+    }
+
+    .popup {
+      background: rgba(0, 0, 0, 0.45);
+      color: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+      padding: 12px 16px;
+      z-index: 1000;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    .popup.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    #nftPopup {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      padding: 6px 16px;
+      margin-top: 4px;
+    }
+
+    .gallery-display-section {
+      margin: 0 16px;
+      border-radius: 10px;
+      background: radial-gradient(circle, #050625, #2525AF);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      min-height: 100px;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .gallery-item-emoji {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      font-size: 20px;
+      z-index: 5;
+      line-height: 1;
+    }
+
+    .image-gallery-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .main-image-wrapper {
+      background-color: transparent;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #mainGalleryImage {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .thumbnail-ribbon {
+      display: flex;
+      justify-content: flex-start;
+      gap: 8px;
+      width: 100%;
+      padding: 0 16px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      flex-shrink: 0;
+    }
+    .thumbnail-ribbon::-webkit-scrollbar {
+      display: none;
+    }
+
+    .thumbnail-item {
+      background: radial-gradient(circle, #050625, #2525AF);
+      width: 100px;
+      height: 100px;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: border-color 0.3s ease;
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    .thumbnail-item.active {
+      border-color: #007bff;
+    }
+
+    .thumbnail-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .get-sticker-button-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: white;
+      padding: 14px 16px;
+      padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+      z-index: 1000;
+    }
+
+    .get-sticker-button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 25px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: background-color 0.3s ease;
+    }
+
+    .copy-link-toast {
+      display: flex;
+      position: fixed;
+      align-items: center;
+      left: 16px;
+      right: 16px;
+      width: auto;
+      height: 50px;
+      transform: translateY(10px);
+      background-color: rgba(0, 0, 0, 0.625);
+      color: white;
+      border-radius: 10px;
+      padding: 0px 12.5px;
+      font-size: 15px;
+      font-weight: 400;
+      z-index: 10002;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s linear 0.3s;
+      pointer-events: none;
+      box-sizing: border-box;
+    }
+
+    .copy-link-toast.show {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s linear 0s;
+    }
+
+    .copy-link-toast img {
+      height: 28px;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+
+    #page-transition-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #ffffff;
+        z-index: 9999;
+        opacity: 1;
+        pointer-events: none;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="content-wrapper-for-transition">
+    <header>
+      <div class="title-row">
+        <div class="title">Seed of the Lost Core</div>
+        <button class="share-button" onclick="handleShare()">
+          <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748459413/Share_u3lem9.png" alt="Share">
+        </button>
+      </div>
+      <div class="subtitle-row">
+        <div class="subtitle">Ethereon Exclusive</div>
+        <span class="check">✔</span>
+      </div>
+      <div class="description-text">
+        🗝 From the Seed, worlds were born. From the Fall, fragments remain.
+      </div>
+      <div class="info-row">
+        <div class="left-info">
+          <div class="nft-wrapper">
+            <button class="nft-button" onclick="togglePopup('nftPopup')">
+              <span class="nft-text">NFT</span>
+            </button>
+            <div id="nftPopup" class="popup">NFT coming soon – stay tuned!</div>
+          </div>
+          <span class="left-tag">
+            <span class="left-text">Left </span>
+            <span class="left-count">1000 / 1000</span>
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <main class="gallery-display-section">
+      <div id="galleryItemEmoji" class="gallery-item-emoji"></div> <div class="image-gallery-container">
+        <div class="main-image-wrapper">
+          <img id="mainGalleryImage" src="" alt="Main gallery image" draggable="false">
+        </div>
+      </div>
+    </main>
+
+    <div id="thumbnailRibbon" class="thumbnail-ribbon">
+    </div>
+  </div>
+
+  <div class="get-sticker-button-container">
+    <button class="get-sticker-button" onclick="handleGetSticker()">
+      Get for <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748645129/Star_me3ogz.png" alt="Star icon" style="height: 1em; vertical-align: middle; margin-left: -4px; margin-right: -4px;"> 4444
+    </button>
+  </div>
+
+  <div id="copyLinkToast" class="copy-link-toast">
+    <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698209/Lightning_fqpr5i.gif" alt="" draggable="false">
+    Link copied to clipboard!
+  </div>
+
+  <div id="page-transition-overlay"></div>
+
+  <script>
+    let isInitialPageLoad = true;
+    let nftPopupTimeoutId = null;
+    let copyLinkToastTimeoutId = null;
+
+    const galleryItems = [
+      {
+        thumb: 'https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698222/Apple_Pit_zm1qkr.png',
+        large: 'https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698222/Apple_Pit_zm1qkr.png',
+        alt: 'Sleeping Character',
+        emoji: '🍎'
+      },
+      {
+        thumb: 'https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698225/Asatswarb_qlzzqh.png',
+        large: 'https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698225/Asatswarb_qlzzqh.png',
+        alt: 'Singing Character',
+        emoji: '🌀'
+      },
+      {
+        thumb: 'https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698228/Aterar_o9jko1.png',
+        large: 'https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698228/Aterar_o9jko1.png',
+        alt: 'Angry Character',
+        emoji: '🪐'
+      }
+    ];
+
+    const mainImageElement = document.getElementById('mainGalleryImage');
+    const thumbnailRibbonElement = document.getElementById('thumbnailRibbon');
+    const gallerySectionElement = document.querySelector('.gallery-display-section');
+    const bottomNavElement = document.querySelector('.get-sticker-button-container');
+    const contentWrapperForTransition = document.querySelector('.content-wrapper-for-transition');
+    const galleryEmojiElement = document.getElementById('galleryItemEmoji');
+
+    function selectGalleryImage(index) {
+      if (!galleryItems[index] || !mainImageElement) return;
+
+      mainImageElement.src = galleryItems[index].large;
+      mainImageElement.alt = galleryItems[index].alt;
+
+      if (galleryEmojiElement) {
+        galleryEmojiElement.textContent = galleryItems[index].emoji;
+      }
+
+      const thumbnails = thumbnailRibbonElement.querySelectorAll('.thumbnail-item');
+      thumbnails.forEach((thumb, i) => {
+        thumb.classList.toggle('active', i === index);
+      });
+    }
+
+    function populateThumbnails() {
+      if (!thumbnailRibbonElement) return;
+      thumbnailRibbonElement.innerHTML = '';
+      galleryItems.forEach((item, index) => {
+        const thumbDiv = document.createElement('div');
+        thumbDiv.classList.add('thumbnail-item');
+        const thumbImg = document.createElement('img');
+        thumbImg.src = item.thumb;
+        thumbImg.alt = item.alt + ' thumbnail';
+        thumbDiv.appendChild(thumbImg);
+        thumbDiv.addEventListener('click', () => selectGalleryImage(index));
+        thumbnailRibbonElement.appendChild(thumbDiv);
+        thumbImg.draggable = false;
+      });
+
+      if (galleryItems.length > 0) {
+          selectGalleryImage(0);
+      } else {
+        if (mainImageElement) {
+          mainImageElement.src = "";
+          mainImageElement.alt = "No image available";
+        }
+        if (galleryEmojiElement) {
+          galleryEmojiElement.textContent = "";
+        }
+      }
+    }
+
+    function setBodyPadding() {
+        if (bottomNavElement && contentWrapperForTransition) {
+            const bottomNavHeight = bottomNavElement.offsetHeight;
+            contentWrapperForTransition.style.paddingBottom = bottomNavHeight + 'px';
+
+            const toast = document.getElementById('copyLinkToast');
+            if (toast) {
+                toast.style.bottom = bottomNavHeight + 10 + 'px';
+            }
+        }
+    }
+    
+    function togglePopup(id) {
+      const popup = document.getElementById(id);
+      if (!popup) return;
+      const isVisible = popup.classList.contains('visible');
+      if (nftPopupTimeoutId && id === 'nftPopup') { clearTimeout(nftPopupTimeoutId); nftPopupTimeoutId = null; }
+      
+      document.querySelectorAll('.popup.visible').forEach(p => {
+        if (p !== popup) p.classList.remove('visible');
+      });
+
+      if (!isVisible) {
+        popup.classList.add('visible');
+        if (id === 'nftPopup') {
+          nftPopupTimeoutId = setTimeout(() => {
+            popup.classList.remove('visible');
+            nftPopupTimeoutId = null;
+          }, 3000);
+        }
+      } else {
+        popup.classList.remove('visible');
+      }
+    }
+
+    function showCopyLinkToast() {
+        const toast = document.getElementById('copyLinkToast');
+        if (!toast) return;
+        const gifImage = toast.querySelector('img');
+        const baseUrl = 'https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698209/Lightning_fqpr5i.gif';
+        
+        if (copyLinkToastTimeoutId) {
+            clearTimeout(copyLinkToastTimeoutId);
+            toast.style.transition = 'none';
+            toast.classList.remove('show');
+            void toast.offsetWidth; 
+            toast.style.removeProperty('transition');
+        }
+        if (gifImage) gifImage.src = baseUrl + '?cachebust=' + new Date().getTime();
+        
+        toast.classList.add('show');
+        copyLinkToastTimeoutId = setTimeout(() => {
+            if (toast.classList.contains('show')) toast.classList.remove('show');
+            copyLinkToastTimeoutId = null;
+        }, 2000);
+    }
+
+    function handleShare() {
+      const linkToCopy = window.location.href;
+      const nftP = document.getElementById('nftPopup');
+      if (nftP && nftP.classList.contains('visible')) {
+          if (nftPopupTimeoutId) { clearTimeout(nftPopupTimeoutId); nftPopupTimeoutId = null; }
+          nftP.classList.remove('visible');
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(linkToCopy)
+          .then(showCopyLinkToast)
+          .catch(err => {
+            showCopyLinkToast(); 
+          });
+      } else {
+        alert("Link copying not supported on your browser. Please copy it manually: " + linkToCopy);
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+        const isNftButton = e.target.closest('.nft-button');
+        const isInsideNftPopup = e.target.closest('#nftPopup');
+        if (!isNftButton && !isInsideNftPopup) {
+            const nftP = document.getElementById('nftPopup');
+            if (nftP && nftP.classList.contains('visible')) {
+                if (nftPopupTimeoutId) { clearTimeout(nftPopupTimeoutId); nftPopupTimeoutId = null; }
+                nftP.classList.remove('visible');
+            }
+        }
+    });
+
+    function checkCollisionAndControlImage() {
+      const headerElement = document.querySelector('header');
+      const mainImageWrapper = gallerySectionElement.querySelector('.main-image-wrapper');
+
+      if (!headerElement || !thumbnailRibbonElement || !bottomNavElement || !gallerySectionElement || !mainImageWrapper || !contentWrapperForTransition) {
+        return;
+      }
+
+      const headerRect = headerElement.getBoundingClientRect();
+      const bottomNavRect = bottomNavElement.getBoundingClientRect();
+      
+      const gallerySectionWidth = gallerySectionElement.offsetWidth;
+
+      const computedThumbnailStyle = window.getComputedStyle(thumbnailRibbonElement);
+      const ribbonMarginTop = parseFloat(computedThumbnailStyle.marginTop) || 0;
+      const ribbonMarginBottom = parseFloat(computedThumbnailStyle.marginBottom) || 0;
+      const thumbnailRibbonVisualHeight = thumbnailRibbonElement.offsetHeight;
+      const thumbnailRibbonFullHeight = thumbnailRibbonVisualHeight + ribbonMarginTop + ribbonMarginBottom;
+
+      let targetGallerySectionHeight;
+      let desiredSquareHeight = gallerySectionWidth;
+      let maxHeightToPreventScroll = bottomNavRect.top - headerRect.bottom - thumbnailRibbonFullHeight;
+      maxHeightToPreventScroll = Math.max(0, maxHeightToPreventScroll);
+
+      targetGallerySectionHeight = Math.min(desiredSquareHeight, maxHeightToPreventScroll);
+      
+      gallerySectionElement.style.height = targetGallerySectionHeight + 'px';
+
+      const actualGalleryW = gallerySectionElement.offsetWidth;
+      const actualGalleryH = gallerySectionElement.offsetHeight;
+      
+      const squareDim = Math.min(actualGalleryW, actualGalleryH);
+      mainImageWrapper.style.width = squareDim + 'px';
+      mainImageWrapper.style.height = squareDim + 'px';
+      
+      setBodyPadding();
+    }
+
+    window.addEventListener('resize', () => {
+        checkCollisionAndControlImage();
+    });
+    
+    function triggerPageTransition(callbackToExecuteDuringTransition) {
+        const transitionOverlay = document.getElementById('page-transition-overlay');
+        const mainContentArea = document.querySelector('.content-wrapper-for-transition');
+
+        if (!transitionOverlay || !mainContentArea) {
+            if (callbackToExecuteDuringTransition && typeof callbackToExecuteDuringTransition === 'function') {
+                callbackToExecuteDuringTransition();
+            }
+            if (isInitialPageLoad) {
+                isInitialPageLoad = false;
+            }
+            return;
+        }
+
+        if (isInitialPageLoad) {
+            if (callbackToExecuteDuringTransition && typeof callbackToExecuteDuringTransition === 'function') {
+                callbackToExecuteDuringTransition();
+            }
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (transitionOverlay) {
+                        transitionOverlay.style.transition = 'opacity 0.15s ease-out';
+                        transitionOverlay.style.opacity = '0';
+                    }
+                    setTimeout(() => {
+                        if (mainContentArea) {
+                            mainContentArea.style.transition = 'filter 0.15s ease-out';
+                            mainContentArea.style.filter = 'none';
+                        }
+                    }, 0);
+                });
+            });
+            isInitialPageLoad = false;
+        } else {
+            mainContentArea.style.transition = 'filter 0s';
+            mainContentArea.style.filter = 'blur(4px)';
+            transitionOverlay.style.transition = 'none';
+            transitionOverlay.style.opacity = '1';
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (callbackToExecuteDuringTransition && typeof callbackToExecuteDuringTransition === 'function') {
+                        callbackToExecuteDuringTransition();
+                    }
+                    transitionOverlay.style.transition = 'opacity 0.15s ease-out';
+                    transitionOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        if (mainContentArea) {
+                            mainContentArea.style.transition = 'filter 0.15s ease-out';
+                            mainContentArea.style.filter = 'none';
+                        }
+                    }, 0);
+                });
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const tg = window.Telegram && window.Telegram.WebApp;
+        if (tg) {
+            try {
+                tg.ready();
+                tg.expand();
+                if (tg.BackButton) {
+                    const backButton = tg.BackButton;
+                    backButton.show();
+                    backButton.onClick(() => {
+                        window.location.href = '../index.html';
+                    });
+                    window.addEventListener('beforeunload', () => {
+                        if (tg.BackButton) {
+                            tg.BackButton.hide();
+                        }
+                    });
+                }
+            } catch (e) { /* Telegram SDK error previously logged here */ }
+        }
+
+        populateThumbnails();
+        setBodyPadding(); 
+        
+        requestAnimationFrame(() => {
+             checkCollisionAndControlImage();
+        });
+
+        const initialPageSetupLogic = () => {
+            if (contentWrapperForTransition) {
+                contentWrapperForTransition.scrollTop = 0;
+            }
+        };
+        triggerPageTransition(initialPageSetupLogic);
+    });
+  </script>
+
+</body>
+</html>

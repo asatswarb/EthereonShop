@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+    <title>My Profile - Sticker Market</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            background-color: #fff;
+            color: #000;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+            background-color: #fff;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            padding-bottom: calc(60px + env(safe-area-inset-bottom, 10px) + 20px);
+            transition: filter 0s;
+            filter: blur(4px);
+        }
+        .content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
+
+        #collection-content.active > .collection-section {
+            padding: 16px 0;
+        }
+
+        .user-profile-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 0 16px;
+        }
+        .profile-avatar {
+            width: 125px;
+            height: 125px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background-color: #eee;
+            user-select: none;
+            pointer-events: none;
+            margin-bottom: 10px;
+        }
+        .profile-name {
+            display: block;
+            font-size: 25px;
+            font-weight: 600;
+            color: #000;
+            text-align: center;
+            word-break: break-word;
+            margin-bottom: 1.5px;
+        }
+        .profile-id {
+            display: block;
+            font-size: 14px;
+            color: #007aff;
+            text-align: center;
+            cursor: pointer;
+        }
+        .profile-id:hover {
+            filter: brightness(1.1);
+        }
+
+        .my-stickers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+            padding: 0 16px;
+        }
+        .my-stickers img {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: block;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 10000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 16px;
+            background-color: transparent;
+            border-top: none;
+            box-shadow: none;
+            overflow: hidden;
+            flex-shrink: 0;
+            gap: 16px;
+            padding-bottom: env(safe-area-inset-bottom, 10px);
+        }
+
+        .bottom-nav button {
+            background-color: white;
+            border: 1px solid #ebebeb;
+            font-size: 12.5px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            color: #000;
+            flex: 1;
+            padding: 5px 0;
+            transition: background-color 0.2s, box-shadow 0.2s, z-index 0s;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            margin: 0;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+        }
+
+        .bottom-nav button:hover {
+            border: 1px solid #d8e3ef;
+            background-color: #e6f2ff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            z-index: 2;
+        }
+        .bottom-nav button.active {
+            border: 1px solid #007aff;
+            color: white;
+            background-color: #007aff;
+            box-shadow: 0 2px 5px rgba(0, 122, 255, 0.3);
+            z-index: 3;
+        }
+
+        .nav-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .nav-icon img {
+            width: 30px;
+            height: 30px;
+            transition: filter 0.75s;
+        }
+        .bottom-nav button:nth-child(1):not(.active) .nav-icon img {
+            filter: grayscale(100%) brightness(0.8);
+        }
+        .bottom-nav button:nth-child(2):not(.active) .nav-icon img {
+            filter: grayscale(100%) brightness(0.9);
+        }
+        .bottom-nav button.active .nav-icon img {
+            filter: none;
+        }
+
+        .popup {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
+            padding: 25px 20px calc(env(safe-area-inset-bottom, 20px) + 10px) 20px;
+            z-index: 10001;
+            transform: translateY(100%);
+            transition: transform 0.35s ease-out;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .popup::-webkit-scrollbar {
+            display: none;
+        }
+        .popup.show {
+            transform: translateY(0);
+        }
+        .popup-content {
+            padding-bottom: 10px;
+        }
+        .popup p {
+            font-size: 16px;
+            margin-bottom: 1px;
+            color: #7f7f7f;
+            font-weight: normal;
+        }
+        .popup p.popup-title {
+            font-size: 27.5px;
+            margin-bottom: -5px;
+            color: #000;
+            font-weight: 550;
+        }
+        .popup p.popup-unavailable {
+            font-size: 27.5px;
+            color: #000;
+            font-weight: 550;
+            margin-top: 0px;
+            margin-bottom: 10px;
+        }
+        .popup-close {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            width: 100%;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            transition: background-color 0.2s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            margin-top: 30px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .popup-close:hover {
+            background-color: #0056b3;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.35s ease-out, visibility 0s linear 0.35s;
+        }
+        .overlay.show {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.35s ease-out, visibility 0s linear 0s;
+        }
+
+        .copy-toast {
+            display: flex;
+            position: fixed;
+            align-items: center;
+            bottom: 75px;
+            left: 16px;
+            right: 16px;
+            width: auto;
+            height: 50px;
+            transform: translateY(10px);
+            background-color: rgba(0, 0, 0, 0.625);
+            color: white;
+            border-radius: 10px;
+            padding: 0px 12.5px;
+            font-size: 15px;
+            font-weight: 400;
+            z-index: 10002;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out, visibility 0s linear 0.5s;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+        .copy-toast img {
+            height: 28px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .copy-toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s linear 0s;
+        }
+
+        #page-transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #ffffff;
+            z-index: 9999;
+            opacity: 1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div id="collection-content" class="page-content active">
+            <div class="collection-section">
+                <div class="user-profile-container">
+                    <img id="user-avatar" class="profile-avatar" alt="User Avatar" src="" draggable="false">
+                    <span id="user-name" class="profile-name"></span>
+                    <span id="user-id" class="profile-id"></span>
+                </div>
+                <div class="my-stickers">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <button onclick="window.location.href='../index.html'"> <div class="nav-icon"> <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678396/Crystal_df80ob.png" alt="NFT" draggable="false"> <span>Ion Treasury</span> </div>
+        </button>
+        <button onclick="openPopup('market-popup', this)"> <div class="nav-icon"> <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678420/Market_emmeqg.png" alt="Market" draggable="false"> <span>Market</span> </div>
+        </button>
+        <button onclick="showContent('collection-content', this)" class="active">
+            <div class="nav-icon"> <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678423/Heart_csx8vq.png" alt="Collection" draggable="false"> <span>My Profile</span> </div>
+        </button>
+    </div>
+
+    <div id="market-popup" class="popup">
+        <div class="popup-content">
+            <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698207/Block_t4gkip.gif" alt="Unavailable" class="popup-gif" style="width: 115px; height: 115px; display: block; margin: 0 auto 15px auto;" draggable="false">
+            <p class="popup-title">Market Temporarily</p>
+            <p class="popup-unavailable">Unavailable</p>
+            <p>You can't sell unique ions right now.</p>
+            <p>Please try again later.</p>
+            <button class="popup-close" onclick="closePopup('market-popup')">Got it</button>
+        </div>
+    </div>
+    <div id="popup-overlay" class="overlay" onclick="closePopup('market-popup')"></div> <div id="copy-toast" class="copy-toast">
+        <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698209/Lightning_fqpr5i.gif" alt="" draggable="false"> Copied to clipboard!
+    </div>
+
+    <div id="page-transition-overlay"></div>
+
+    <script>
+    let isInitialPageLoad = true;
+
+    function openPopup(popupId) {
+        const popup = document.getElementById(popupId);
+        const overlay = document.getElementById('popup-overlay');
+        const contentArea = document.querySelector('.content');
+        if (popup && overlay && contentArea) {
+            overlay.classList.add('show');
+            popup.classList.add('show');
+            contentArea.style.overflowY = 'hidden';
+        }
+    }
+
+    function closePopup(popupId) {
+        const popup = document.getElementById(popupId);
+        const overlay = document.getElementById('popup-overlay');
+        const contentArea = document.querySelector('.content');
+        if (popup && overlay && contentArea) {
+            overlay.classList.remove('show');
+            popup.classList.remove('show');
+            const anyPopupShown = Array.from(document.querySelectorAll('.popup.show')).length > 0;
+            if (!anyPopupShown) {
+                contentArea.style.overflowY = 'auto';
+            }
+        }
+    }
+
+    function closeAllPopups() {
+        const popupIds = ['market-popup'];
+        popupIds.forEach(id => {
+            const popup = document.getElementById(id);
+            if (popup && popup.classList.contains('show')) {
+                closePopup(id);
+            }
+        });
+    }
+
+    function triggerPageTransition(callbackToSwitchContent) {
+        const transitionOverlay = document.getElementById('page-transition-overlay');
+        const mainContentArea = document.querySelector('.content');
+
+        if (!transitionOverlay || !mainContentArea) {
+            if (callbackToSwitchContent && typeof callbackToSwitchContent === 'function') {
+                callbackToSwitchContent();
+            }
+            if (isInitialPageLoad) {
+                isInitialPageLoad = false;
+            }
+            return;
+        }
+
+        if (isInitialPageLoad) {
+            if (callbackToSwitchContent && typeof callbackToSwitchContent === 'function') {
+                callbackToSwitchContent();
+            }
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (transitionOverlay) {
+                        transitionOverlay.style.transition = 'opacity 0.15s ease-out';
+                        transitionOverlay.style.opacity = '0';
+                    }
+                    setTimeout(() => {
+                        if (mainContentArea) {
+                            mainContentArea.style.transition = 'filter 0.15s ease-out';
+                            mainContentArea.style.filter = 'none';
+                        }
+                    }, 0);
+                });
+            });
+            isInitialPageLoad = false;
+        } else {
+            mainContentArea.style.transition = 'filter 0s';
+            mainContentArea.style.filter = 'blur(4px)';
+            transitionOverlay.style.transition = 'none';
+            transitionOverlay.style.opacity = '1';
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (callbackToSwitchContent && typeof callbackToSwitchContent === 'function') {
+                        callbackToSwitchContent();
+                    }
+                    transitionOverlay.style.transition = 'opacity 0.15s ease-out';
+                    transitionOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        if (mainContentArea) {
+                            mainContentArea.style.transition = 'filter 0s ease-out';
+                            mainContentArea.style.filter = 'none';
+                        }
+                    }, 0);
+                });
+            });
+        }
+    }
+
+    function showContent(contentId, clickedButton) {
+        const targetContent = document.getElementById(contentId);
+
+        if (targetContent && targetContent.classList.contains('active') &&
+            clickedButton && clickedButton.classList.contains('active') && !isInitialPageLoad) {
+            const mainContentArea = document.querySelector('.content');
+            if (mainContentArea) mainContentArea.scrollTop = 0;
+            return;
+        }
+
+        const switchLogic = () => {
+            closeAllPopups();
+
+            const allPageContents = document.querySelectorAll('.page-content');
+            allPageContents.forEach(pc => pc.classList.remove('active'));
+
+            const allNavButtons = document.querySelectorAll('.bottom-nav button');
+            allNavButtons.forEach(btn => btn.classList.remove('active'));
+
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+            const myProfileButton = document.querySelector('.bottom-nav button[onclick*="collection-content"]');
+            if (myProfileButton) {
+                myProfileButton.classList.add('active');
+            }
+            
+            const mainContentArea = document.querySelector('.content');
+            if (mainContentArea) {
+                mainContentArea.style.overflowY = 'auto';
+                mainContentArea.scrollTop = 0;
+            }
+            document.body.style.overflow = 'hidden';
+        };
+        triggerPageTransition(switchLogic);
+    }
+
+    let toastTimeout;
+    function showCopyToast() {
+        const toast = document.getElementById('copy-toast');
+        if (toast) {
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toast.classList.add('show');
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+                toastTimeout = null;
+            }, 2000);
+        }
+    }
+
+    function displayUserInfo() {
+        try {
+            const tg = window.Telegram.WebApp;
+            const user = tg.initDataUnsafe?.user;
+            const avatarElement = document.getElementById('user-avatar');
+            const nameElement = document.getElementById('user-name');
+            const idElement = document.getElementById('user-id');
+
+            if (avatarElement) {
+                avatarElement.src = user?.photo_url || 'https://res.cloudinary.com/dz6vzivzp/image/upload/v1748765473/anon_ax36am.png';
+                avatarElement.alt = user ? `${user.first_name || ''} ${user.last_name || ''}'s Avatar`.trim() : 'User Avatar';
+            }
+            if (nameElement) {
+                nameElement.textContent = user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'User' : 'User';
+            }
+
+            if (idElement) {
+                let textForDisplay;
+                let textForClipboard;
+
+                if (user && typeof user.id !== 'undefined' && user.id !== null) {
+                    textForDisplay = `ID ${user.id.toString()}`;
+                    textForClipboard = user.id.toString();
+                } else {
+                    textForDisplay = 'ID Unknown';
+                    textForClipboard = 'Unknown';
+                }
+                idElement.textContent = textForDisplay;
+
+                idElement.onclick = () => {
+                    navigator.clipboard.writeText(textForClipboard)
+                        .then(showCopyToast)
+                        .catch(err => {
+                            console.error('Copy failed for:', textForClipboard, err);
+                            showCopyToast();
+                        });
+                };
+            }
+        } catch (error) {
+            console.error('Error accessing Telegram user data:', error);
+            const avatarElement = document.getElementById('user-avatar');
+            const nameElement = document.getElementById('user-name');
+            const idElement = document.getElementById('user-id');
+            if(avatarElement) avatarElement.src = 'https://res.cloudinary.com/dz6vzivzp/image/upload/v1748765473/anon_ax36am.png';
+            if (nameElement) nameElement.textContent = 'User';
+            if (idElement) {
+                idElement.textContent = 'ID Error';
+                idElement.onclick = () => {
+                    navigator.clipboard.writeText('Error')
+                        .then(showCopyToast)
+                        .catch(err => {
+                            console.error('Copy failed for: Error', err);
+                            showCopyToast();
+                        });
+                };
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const tg = window.Telegram.WebApp;
+
+        if (tg) {
+            try {
+                tg.ready();
+                displayUserInfo();
+                tg.expand();
+                if (tg.BackButton) {
+                    const backButton = tg.BackButton;
+                    backButton.show();
+                    backButton.onClick(() => {
+                        window.location.href = '../index.html';
+                    });
+                    window.addEventListener('beforeunload', () => {
+                        if (tg.BackButton) {
+                            tg.BackButton.hide();
+                        }
+                    });
+                }
+            } catch (e) { console.error("Telegram SDK error on ready/expand:", e); displayUserInfo(); }
+        } else {
+            console.error('Telegram WebApp script not loaded or object not found.');
+            displayUserInfo();
+        }
+
+        const initialContentId = 'collection-content';
+        const actualInitialButton = document.querySelector('.bottom-nav button[onclick*="collection-content"]');
+
+        if (actualInitialButton && document.getElementById(initialContentId)) {
+            showContent(initialContentId, actualInitialButton);
+        } else {
+            console.error("Initial content or button not found for My Profile page setup.");
+            const targetContent = document.getElementById('collection-content');
+            if(targetContent) targetContent.style.display = 'block';
+        }
+    });
+    </script>
+</body>
+</html>

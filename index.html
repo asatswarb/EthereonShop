@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+    <title>Sticker Market</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            background-color: #fff;
+            color: #000;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+            background-color: #fff;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            padding-bottom: calc(60px + env(safe-area-inset-bottom, 10px) + 20px);
+            transition: filter 0s;
+            filter: blur(4px);
+        }
+        .content::-webkit-scrollbar {
+            display: none;
+        }
+
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+        }
+
+        #nfts-content.active > .sticker-section {
+            padding-left: 0;
+            padding-right: 0;
+        }
+        #nfts-content.active > .sticker-section:first-child {
+            padding-top: 16px;
+        }
+        #nfts-content.active .sticker-title {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 10000;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 16px;
+            background-color: transparent;
+            border-top: none;
+            box-shadow: none;
+            overflow: hidden;
+            flex-shrink: 0;
+            gap: 16px;
+            padding-bottom: env(safe-area-inset-bottom, 10px);
+        }
+
+        .bottom-nav button {
+            background-color: white;
+            border: 1px solid #ebebeb;
+            font-size: 12.5px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            color: #000;
+            flex: 1;
+            padding: 5px 0;
+            transition: background-color 0.2s, box-shadow 0.2s, z-index 0s;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            margin: 0;
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 60px;
+        }
+
+        .bottom-nav button:hover {
+            border: 1px solid #d8e3ef;
+            background-color: #e6f2ff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            z-index: 2;
+        }
+        .bottom-nav button.active {
+            border: 1px solid #007aff;
+            color: white;
+            background-color: #007aff;
+            box-shadow: 0 2px 5px rgba(0, 122, 255, 0.3);
+            z-index: 3;
+        }
+
+        .nav-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .nav-icon img {
+            width: 30px;
+            height: 30px;
+            transition: filter 0.75s;
+        }
+        .bottom-nav button:nth-child(1):not(.active) .nav-icon img {
+            filter: grayscale(100%) brightness(0.8);
+        }
+        .bottom-nav button:nth-child(2):not(.active) .nav-icon img {
+            filter: grayscale(100%) brightness(0.9);
+        }
+        .bottom-nav button:nth-child(3):not(.active) .nav-icon img {
+            filter: grayscale(100%) brightness(0.8);
+        }
+        .bottom-nav button.active .nav-icon img {
+            filter: none;
+        }
+
+        .sticker-section {
+            margin-bottom: 20px;
+        }
+        .sticker-title {
+            font-size: 25px;
+            margin-bottom: 10px;
+        }
+
+        #featured-sticker-container {
+            display: flex;
+            overflow: hidden;
+            width: 100%;
+            padding-left: 16px;
+            list-style: none;
+            margin-bottom: 0;
+            cursor: grab;
+            position: relative;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        #featured-sticker-container::-webkit-scrollbar {
+            display: none;
+        }
+        #featured-sticker-container.grabbing {
+            cursor: grabbing;
+        }
+
+        .sticker-slide {
+            flex-shrink: 0;
+            width: 85%;
+            box-sizing: border-box;
+            margin-right: 16px;
+            position: relative;
+            min-height: 100px;
+            background-color: #ffffff;
+        }
+        .sticker-slide:last-child {
+            margin-right: 0;
+        }
+
+        #featured-sticker-container .sticker-slide > img {
+            width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px 0;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            pointer-events: none;
+            min-height: 100px;
+            background-color: #e0e0e0;
+        }
+         #ethereon-exclusive-sticker > img {
+            pointer-events: auto;
+            cursor: pointer;
+        }
+         #ion-treasury-sticker > img {
+            pointer-events: auto;
+            cursor: pointer;
+        }
+
+
+        .sticker-creator-info {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            padding: 0 5px;
+        }
+        .creator-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+        .creator-name {
+            font-size: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            color: #000000;
+            margin-left: 10px;
+        }
+
+        .popup {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            background-color: white;
+            box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
+            padding: 25px 20px calc(env(safe-area-inset-bottom, 20px) + 10px) 20px;
+            z-index: 10001;
+            transform: translateY(100%);
+            transition: transform 0.35s ease-out;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .popup::-webkit-scrollbar {
+            display: none;
+        }
+        .popup.show {
+            transform: translateY(0);
+        }
+        .popup-content {
+            padding-bottom: 10px;
+        }
+        .popup p {
+            font-size: 16px;
+            margin-bottom: 1px;
+            color: #7f7f7f;
+            font-weight: normal;
+        }
+        .popup p.popup-title {
+            font-size: 27.5px;
+            margin-bottom: -5px;
+            color: #000;
+            font-weight: 550;
+        }
+        .popup p.popup-unavailable {
+            font-size: 27.5px;
+            color: #000;
+            font-weight: 550;
+            margin-top: 0px;
+            margin-bottom: 10px;
+        }
+        .popup-close {
+            background-color: #007aff;
+            color: white;
+            border: none;
+            width: 100%;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            transition: background-color 0.2s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 550;
+            margin-top: 30px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .popup-close:hover {
+            background-color: #0056b3;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.35s ease-out, visibility 0s linear 0.35s;
+        }
+        .overlay.show {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.35s ease-out, visibility 0s linear 0s;
+        }
+
+        .no-exclusive-message {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            background: radial-gradient(circle, #FFF6CC 25px, #FFEC99 50px, #FFE066 75px, #FFD232 100px);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-fill-color: transparent;
+            margin-top: 25px;
+            margin-bottom: 25px;
+            padding: 0 16px;
+        }
+
+        .no-ions-message {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            background: radial-gradient(circle, #004BBF 25px, #0064FF 50px, #FF6400 75px, #FF3200 100px);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-fill-color: transparent;
+            margin-top: 25px;
+            margin-bottom: 25px;
+            padding: 0 16px;
+        }
+
+        .no-unique-skills-message {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            background: radial-gradient(circle, #FFD800 25px, #FFDD32 50px, #FFE566 75px, #FFEC99 100px, #FFF4CC 125px);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-fill-color: transparent;
+            margin-top: 25px;
+            margin-bottom: 25px;
+            padding: 0 16px;
+        }
+
+        .free-sticker-list-container {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        .free-sticker-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            cursor: pointer;
+            transition: background-color 0.15s ease-out;
+        }
+        .free-sticker-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            object-fit: cover;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .free-sticker-details {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .free-sticker-title-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        .free-sticker-name {
+            font-size: 17px;
+            font-weight: 550;
+            color: #000;
+        }
+        .verified-badge-blue {
+            font-size: 14px;
+            color: #007AFF;
+            margin-left: 5px;
+            line-height: 1;
+        }
+        .free-sticker-count {
+            font-size: 13px;
+            font-weight: normal;
+            color: #7F7F7F;
+        }
+        .free-sticker-button {
+            background-color: #F2F2F2;
+            color: #007AFF;
+            border: none;
+            border-radius: 15px;
+            padding: 8px 18px;
+            font-size: 14px;
+            font-weight: 550;
+            transition: background-color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .copy-toast {
+            display: flex;
+            position: fixed;
+            align-items: center;
+            bottom: 75px;
+            left: 16px;
+            right: 16px;
+            width: auto;
+            height: 50px;
+            transform: translateY(10px);
+            background-color: rgba(0, 0, 0, 0.625);
+            color: white;
+            border-radius: 10px;
+            padding: 0px 12.5px;
+            font-size: 15px;
+            font-weight: 400;
+            z-index: 10002;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out, visibility 0s linear 0.5s;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+        .copy-toast img {
+            height: 28px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .copy-toast.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out, visibility 0s linear 0s;
+        }
+
+        #page-transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #ffffff;
+            z-index: 9999;
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        #nfts-content > .sticker-section:first-child > .sticker-title {
+            position: relative;
+        }
+
+        .title-gemini-icon {
+            position: absolute;
+            top: 50%;
+            right: 16px;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <div id="nfts-content" class="page-content active">
+            <div class="sticker-section">
+                <div class="sticker-title">
+                    Ethereon collections
+                    <img id="gemini-clickable-icon" src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748655014/Gemini_fktgfv.png" alt="Gemini Icon" class="title-gemini-icon" draggable="false" crossorigin="anonymous">
+                </div>
+                <div class="sticker-grid" id="featured-sticker-container">
+                    <div class="sticker-slide" id="ethereon-exclusive-sticker">
+                        <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678436/Shop_jiqvjo.jpg" alt="Ethereon Exclusive" draggable="false">
+                        <div class="sticker-creator-info">
+                            <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678440/Ethereon_vx9bhr.jpg" alt="Creator Avatar" class="creator-avatar" draggable="false">
+                            <span class="creator-name">Ethereon Exclusive</span>
+                        </div>
+                    </div>
+                    <div class="sticker-slide" id="ion-treasury-sticker">
+                        <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748686246/IonTreasury_oikdp7.jpg" alt="Ion Treasury" draggable="false">
+                        <div class="sticker-creator-info">
+                            <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748686241/IonTreasury_kzdbie.jpg" alt="Creator Avatar" class="creator-avatar" draggable="false">
+                            <span class="creator-name">Ion Treasury</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="sticker-section"> <div class="sticker-title" style="padding-left: 16px; padding-right: 16px;">Best free ions</div> <div class="free-sticker-list-container">
+                    <div class="free-sticker-item" onclick="window.location.href='Ethreon Exclusive/index.html'">
+                        <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698205/Apple_vo0hnf.gif" alt="Seed of the Lost Core Sticker" class="free-sticker-image" draggable="false">
+                        <div class="free-sticker-details">
+                            <div class="free-sticker-title-line">
+                                <span class="free-sticker-name">Seed of the Lost Core</span>
+                                <span class="verified-badge-blue">✔</span>
+                            </div>
+                            <span class="free-sticker-count">3 stickers - only 5 available</span>
+                        </div>
+                        <button class="free-sticker-button">GET FREE</button>
+                    </div>
+                </div>
+            </div>
+            <div class="sticker-section">
+                <div class="sticker-title" style="padding-left: 16px; padding-right: 16px;">Ion Crystals</div> <div class="no-ions-message">No Ions available</div>
+            </div>
+            <div class="sticker-section">
+                <div class="sticker-title" style="padding-left: 16px; padding-right: 16px;">Unique Skills</div> <div class="no-unique-skills-message">No Unique Skills available</div>
+            </div>
+        </div>
+
+        </div>
+    <div class="bottom-nav">
+        <button onclick="showContent('nfts-content', this)" class="active">
+            <div class="nav-icon"> <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678396/Crystal_df80ob.png" alt="NFT" draggable="false"> <span>Ion Treasury</span> </div>
+        </button>
+        <button onclick="openPopup('market-popup', this)">
+            <div class="nav-icon"> <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678420/Market_emmeqg.png" alt="Market" draggable="false"> <span>Market</span> </div>
+        </button>
+        <button onclick="window.location.href='My Profile/index.html'"> <div class="nav-icon"> <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1747678423/Heart_csx8vq.png" alt="Collection" draggable="false"> <span>My Profile</span> </div>
+        </button>
+    </div>
+
+    <div id="market-popup" class="popup">
+        <div class="popup-content">
+            <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698207/Block_t4gkip.gif" alt="Unavailable" class="popup-gif" style="width: 115px; height: 115px; display: block; margin: 0 auto 15px auto;" draggable="false">
+            <p class="popup-title">Market Temporarily</p>
+            <p class="popup-unavailable">Unavailable</p>
+            <p>You can't sell unique ions right now.</p>
+            <p>Please try again later.</p>
+            <button class="popup-close" onclick="closePopup('market-popup')">Got it</button>
+        </div>
+    </div>
+    <div id="popup-overlay" class="overlay" onclick="closePopup('market-popup')"></div>
+
+    <div id="copy-toast" class="copy-toast">
+        <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748698209/Lightning_fqpr5i.gif" alt="" draggable="false"> Copied to clipboard!
+    </div>
+
+    <div id="page-transition-overlay"></div>
+
+    <script>
+    let isInitialPageLoad = true;
+
+    function getTransformMatrix(element) {
+        if (!element) return { m41: 0, m42: 0 };
+        const style = window.getComputedStyle(element);
+        const matrix = style.transform || style.webkitTransform || style.mozTransform;
+
+        if (matrix === 'none' || typeof matrix === 'undefined' || matrix === "") {
+            return { m41: 0, m42: 0 };
+        }
+
+        const matrixValuesMatch = matrix.match(/matrix.*\((.+)\)/);
+        if (!matrixValuesMatch || !matrixValuesMatch[1]) {
+            return { m41: 0, m42: 0 };
+        }
+        const matrixValues = matrixValuesMatch[1].split(', ');
+
+        if (matrix.includes('3d')) {
+            return {
+                m41: parseFloat(matrixValues[12]) || 0,
+                m42: parseFloat(matrixValues[13]) || 0
+            };
+        } else {
+            return {
+                m41: parseFloat(matrixValues[4]) || 0,
+                m42: parseFloat(matrixValues[5]) || 0
+            };
+        }
+    }
+
+    function openPopup(popupId) {
+        const popup = document.getElementById(popupId);
+        const overlay = document.getElementById('popup-overlay');
+        const contentArea = document.querySelector('.content');
+        if (popup && overlay && contentArea) {
+            overlay.classList.add('show');
+            popup.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            contentArea.style.overflowY = 'hidden';
+        }
+    }
+
+    function closePopup(popupId) {
+        const popup = document.getElementById(popupId);
+        const overlay = document.getElementById('popup-overlay');
+        const contentArea = document.querySelector('.content');
+        if (popup && overlay && contentArea) {
+            overlay.classList.remove('show');
+            popup.classList.remove('show');
+            const anyPopupShown = Array.from(document.querySelectorAll('.popup.show')).length > 0;
+            if (!anyPopupShown) {
+                contentArea.style.overflowY = 'auto';
+            }
+        }
+    }
+
+    function closeAllPopups() {
+        const popupIds = ['market-popup'];
+        popupIds.forEach(id => {
+            const popup = document.getElementById(id);
+            if (popup && popup.classList.contains('show')) { closePopup(id); }
+        });
+    }
+
+    function triggerPageTransition(callbackToSwitchContent) {
+        const transitionOverlay = document.getElementById('page-transition-overlay');
+        const mainContentArea = document.querySelector('.content');
+
+        if (!transitionOverlay || !mainContentArea) {
+            if (callbackToSwitchContent && typeof callbackToSwitchContent === 'function') {
+                callbackToSwitchContent();
+            }
+            if (isInitialPageLoad) {
+                isInitialPageLoad = false;
+            }
+            return;
+        }
+
+        if (isInitialPageLoad) {
+            if (callbackToSwitchContent && typeof callbackToSwitchContent === 'function') {
+                callbackToSwitchContent();
+            }
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (transitionOverlay) {
+                        transitionOverlay.style.transition = 'opacity 0.15s ease-out';
+                        transitionOverlay.style.opacity = '0';
+                    }
+                    setTimeout(() => {
+                        if (mainContentArea) {
+                            mainContentArea.style.transition = 'filter 0.15s ease-out';
+                            mainContentArea.style.filter = 'none';
+                        }
+                    }, 150);
+                });
+            });
+            isInitialPageLoad = false;
+        } else {
+            if (transitionOverlay && mainContentArea) {
+                mainContentArea.style.transition = 'filter 0s';
+                mainContentArea.style.filter = 'blur(4px)';
+                transitionOverlay.style.transition = 'none';
+                transitionOverlay.style.opacity = '1';
+
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        if (callbackToSwitchContent && typeof callbackToSwitchContent === 'function') {
+                            callbackToSwitchContent();
+                        }
+                        transitionOverlay.style.transition = 'opacity 0.15s ease-out';
+                        transitionOverlay.style.opacity = '0';
+                        setTimeout(() => {
+                            if (mainContentArea) {
+                                mainContentArea.style.transition = 'filter 0s';
+                                mainContentArea.style.filter = 'none';
+                            }
+                        }, 150);
+                    });
+                });
+            } else {
+                if (callbackToSwitchContent && typeof callbackToSwitchContent === 'function') {
+                    callbackToSwitchContent();
+                }
+            }
+        }
+    }
+
+    function showContent(contentId, clickedButton) {
+        const targetContent = document.getElementById(contentId);
+
+        if (!targetContent) {
+            if (clickedButton && clickedButton.classList.contains('active')) {
+            }
+            const activeContent = document.querySelector('.page-content.active');
+            if (!activeContent) {
+                const nftsContentFallback = document.getElementById('nfts-content');
+                const nftsButtonFallback = document.querySelector('.bottom-nav button[onclick*="nfts-content"]');
+                if (nftsContentFallback && nftsButtonFallback) {
+                    const switchLogicFallback = () => {
+                        closeAllPopups();
+                        const contentSections = document.querySelectorAll('.page-content');
+                        const buttons = document.querySelectorAll('.bottom-nav button');
+                        contentSections.forEach(section => { section.classList.remove('active'); });
+                        buttons.forEach(button => { button.classList.remove('active'); });
+
+                        nftsContentFallback.classList.add('active');
+                        nftsButtonFallback.classList.add('active');
+                          if (typeof window.updateSliderDimensionsAndPosition === 'function') {
+                                requestAnimationFrame(() => { requestAnimationFrame(() => { window.updateSliderDimensionsAndPosition(); }); });
+                        }
+                        const mainContentArea = document.querySelector('.content');
+                        if (mainContentArea) {
+                            mainContentArea.style.overflowY = 'auto';
+                            mainContentArea.scrollTop = 0;
+                        }
+                        document.body.style.overflow = 'hidden';
+                    };
+                    switchLogicFallback();
+                }
+            }
+            return;
+        }
+
+
+        if (targetContent && targetContent.classList.contains('active') &&
+            clickedButton && clickedButton.classList.contains('active') && !isInitialPageLoad) {
+            return;
+        }
+
+        const switchLogic = () => {
+            closeAllPopups();
+            const contentSections = document.querySelectorAll('.page-content');
+            const buttons = document.querySelectorAll('.bottom-nav button');
+
+            contentSections.forEach(section => { section.classList.remove('active'); });
+            buttons.forEach(button => { button.classList.remove('active'); });
+
+            if(targetContent) { targetContent.classList.add('active'); }
+
+            if(clickedButton && Array.from(buttons).includes(clickedButton)) {
+                clickedButton.classList.add('active');
+            } else if (contentId === 'nfts-content') {
+                const nftsButton = document.querySelector('.bottom-nav button[onclick*="nfts-content"]');
+                if (nftsButton) nftsButton.classList.add('active');
+            }
+
+
+            if (contentId === 'nfts-content' && typeof window.updateSliderDimensionsAndPosition === 'function') {
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        window.updateSliderDimensionsAndPosition();
+                    });
+                });
+            }
+
+            const mainContentArea = document.querySelector('.content');
+            if (mainContentArea) {
+                mainContentArea.style.overflowY = 'auto';
+                mainContentArea.scrollTop = 0;
+            }
+            document.body.style.overflow = 'hidden';
+        };
+
+        triggerPageTransition(switchLogic);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const tg = window.Telegram.WebApp;
+
+        if (tg) {
+            try {
+                tg.ready();
+                tg.expand();
+            } catch (e) { console.error("Telegram SDK error:", e); }
+        } else {
+            console.error('Telegram WebApp script not loaded or object not found.');
+        }
+
+        const geminiIcon = document.getElementById('gemini-clickable-icon');
+        if (geminiIcon) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            let imageProcessedForClick = false;
+
+            const processImageForClickDetection = () => {
+                if (!geminiIcon.complete || geminiIcon.naturalWidth === 0 || geminiIcon.naturalHeight === 0) {
+                    if (geminiIcon.src && typeof geminiIcon.naturalWidth !== "undefined") {
+                        if (typeof processImageForClickDetection.retries === 'undefined') {
+                            processImageForClickDetection.retries = 0;
+                        }
+                        if (processImageForClickDetection.retries < 20) {
+                            processImageForClickDetection.retries++;
+                            setTimeout(processImageForClickDetection, 100);
+                        } else {
+                        }
+                    } else {
+                    }
+                    return;
+                }
+                processImageForClickDetection.retries = 0;
+
+
+                try {
+                    canvas.width = geminiIcon.clientWidth;
+                    canvas.height = geminiIcon.clientHeight;
+
+                    const imgNaturalWidth = geminiIcon.naturalWidth;
+                    const imgNaturalHeight = geminiIcon.naturalHeight;
+                    const canvasWidth = canvas.width;
+                    const canvasHeight = canvas.height;
+
+                    const imgAspectRatio = imgNaturalWidth / imgNaturalHeight;
+                    const canvasAspectRatio = canvasWidth / canvasHeight;
+
+                    let renderableWidth, renderableHeight, xStart, yStart;
+
+                    if (imgAspectRatio > canvasAspectRatio) {
+                        renderableWidth = canvasWidth;
+                        renderableHeight = canvasWidth / imgAspectRatio;
+                    } else {
+                        renderableHeight = canvasHeight;
+                        renderableWidth = canvasHeight * imgAspectRatio;
+                    }
+
+                    xStart = (canvasWidth - renderableWidth) / 2;
+                    yStart = (canvasHeight - renderableHeight) / 2;
+
+                    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                    ctx.drawImage(geminiIcon, xStart, yStart, renderableWidth, renderableHeight);
+                    imageProcessedForClick = true;
+                } catch (err) {
+                    console.error("Error processing Gemini icon for click detection (drawing to canvas):", err);
+                    imageProcessedForClick = false;
+                }
+            };
+
+            geminiIcon.onload = () => {
+                processImageForClickDetection.retries = 0;
+                processImageForClickDetection();
+            };
+            geminiIcon.onerror = () => {
+                console.error("Gemini icon failed to load (network error or invalid image).");
+                imageProcessedForClick = false;
+            };
+
+            if (geminiIcon.complete && geminiIcon.naturalWidth > 0) {
+                processImageForClickDetection();
+            } else if (!geminiIcon.src) {
+                console.warn("Gemini icon src is not set on initial load.");
+                imageProcessedForClick = false;
+            }
+
+            geminiIcon.addEventListener('click', function(event) {
+                if (!imageProcessedForClick) {
+                    console.warn("Gemini icon image not yet ready for click detection. Click ignored.");
+                    return;
+                }
+
+                const x = event.offsetX;
+                const y = event.offsetY;
+
+                try {
+                    const pixelData = ctx.getImageData(x, y, 1, 1).data;
+                    const alpha = pixelData[3];
+
+                    if (alpha > 20) {
+                        window.location.href = 'Gemini/index.html';
+                    } else {
+                    }
+                } catch (e) {
+                    console.error("Error getting pixel data from canvas for Gemini icon (CORS issue?):", e);
+                }
+            });
+
+            geminiIcon.style.cursor = 'default';
+        }
+
+
+        const mainSlider = document.getElementById('featured-sticker-container');
+        if (mainSlider) {
+            mainSlider.style.overflow = 'hidden';
+
+            let slidesWrapper = mainSlider.querySelector('.slides-wrapper-dynamic');
+            if (!slidesWrapper) {
+                slidesWrapper = document.createElement('div');
+                slidesWrapper.className = 'slides-wrapper-dynamic';
+                slidesWrapper.style.display = 'flex';
+                slidesWrapper.style.position = 'relative';
+                slidesWrapper.style.height = '100%';
+                slidesWrapper.style.willChange = 'transform';
+
+                const originalSlidesNodes = Array.from(mainSlider.childNodes);
+                originalSlidesNodes.forEach(slideNode => {
+                    if (slideNode.nodeType === Node.ELEMENT_NODE && slideNode.classList && slideNode.classList.contains('sticker-slide')) {
+                        slidesWrapper.appendChild(slideNode);
+                    }
+                });
+                mainSlider.appendChild(slidesWrapper);
+            }
+
+            let minTranslateX_boundary = 0;
+            let maxTranslateX_boundary = 0;
+            let currentWrapperTranslateX = 0;
+            let isSnappingAnimationInProgress = false;
+            let snapTargetX = 0;
+
+            let slides = [];
+
+            let pointerHistory = [];
+            let touchStartTime = 0;
+            const MAX_POINTER_HISTORY = 5;
+            const VELOCITY_CALC_TIME_WINDOW_MS = 100;
+            const FLICK_VELOCITY_THRESHOLD = 0.0;
+            const LONG_PRESS_THRESHOLD_MS = 700;
+            const INERTIA_MULTIPLIER = 10000;
+
+            const CLICK_THRESHOLD_DRAG = 5;
+            const OVERSCROLL_FRICTION = 3.5;
+
+            let pointerDown_initialPointerX;
+            let startPointerX;
+            let startWrapperTranslateX_onDrag;
+
+
+            window.updateSliderDimensionsAndPosition = function() {
+                if (!mainSlider || !slidesWrapper || mainSlider.offsetParent === null) {
+                    return;
+                }
+                slides = Array.from(slidesWrapper.children).filter(child => child.classList.contains('sticker-slide'));
+                let totalSlidesWidth = 0;
+
+                if (!slides.length) {
+                    maxTranslateX_boundary = 0;
+                    minTranslateX_boundary = 0;
+                    currentWrapperTranslateX = 0;
+                    applyImmediateTransform(currentWrapperTranslateX, false);
+                    return;
+                }
+
+                slides.forEach((slide, index) => {
+                    totalSlidesWidth += slide.getBoundingClientRect().width;
+                    if (index < slides.length - 1) {
+                        totalSlidesWidth += parseFloat(window.getComputedStyle(slide).marginRight) || 16;
+                    }
+                });
+
+                const viewportWidth = mainSlider.getBoundingClientRect().width;
+                minTranslateX_boundary = 0;
+                const containerPaddingLeft = parseFloat(window.getComputedStyle(mainSlider).paddingLeft) || 0;
+
+                const desiredRightGap = parseFloat(window.getComputedStyle(mainSlider).paddingLeft) || 16;
+                const availableSpaceForSlides = viewportWidth - containerPaddingLeft - desiredRightGap;
+
+                if (totalSlidesWidth <= availableSpaceForSlides) {
+                    maxTranslateX_boundary = 0;
+                } else {
+                    maxTranslateX_boundary = availableSpaceForSlides - totalSlidesWidth;
+                }
+
+                if (maxTranslateX_boundary > 0) {
+                     maxTranslateX_boundary = 0;
+                }
+
+                currentWrapperTranslateX = Math.max(maxTranslateX_boundary, Math.min(minTranslateX_boundary, currentWrapperTranslateX));
+                applyImmediateTransform(currentWrapperTranslateX, false);
+            };
+
+            function initializeSlider() {
+                if (!slidesWrapper) return;
+                slidesWrapper.addEventListener('transitionend', onSnapAnimationEnd);
+
+                const images = Array.from(slidesWrapper.querySelectorAll('.sticker-slide > img'));
+                let imagesLoadedCount = 0;
+                const totalImages = images.length;
+
+                function checkAllImagesLoaded() {
+                    if (imagesLoadedCount === totalImages) {
+                       requestAnimationFrame(() => { requestAnimationFrame(() => { window.updateSliderDimensionsAndPosition(); }); });
+                    }
+                }
+
+                if (totalImages === 0 && slidesWrapper.children.length > 0) {
+                    requestAnimationFrame(() => { requestAnimationFrame(() => { window.updateSliderDimensionsAndPosition(); }); });
+                    return;
+                } else if (slidesWrapper.children.length === 0) {
+                    window.updateSliderDimensionsAndPosition();
+                    return;
+                }
+
+                images.forEach(img => {
+                    if (img.complete && (typeof img.naturalWidth !== "undefined" ? img.naturalWidth !== 0 : true)) {
+                        imagesLoadedCount++;
+                    } else {
+                        img.onload = () => {
+                            imagesLoadedCount++;
+                            checkAllImagesLoaded();
+                        };
+                        img.onerror = () => {
+                            imagesLoadedCount++;
+                            console.error("Image failed to load (slider init), but slider will proceed:", img.src);
+                            checkAllImagesLoaded();
+                        };
+                    }
+                });
+                checkAllImagesLoaded();
+            }
+
+            function startSnapAnimation(translateX) {
+                if (!slidesWrapper) return;
+
+                isSnappingAnimationInProgress = true;
+                snapTargetX = translateX;
+                slidesWrapper.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.25, 0.25, 1)';
+                slidesWrapper.style.transform = `translateX(${translateX}px)`;
+                currentWrapperTranslateX = translateX;
+            }
+
+            function applyImmediateTransform(translateX, stopExistingSnapAnimation) {
+                if (!slidesWrapper) return;
+
+                if (isSnappingAnimationInProgress && stopExistingSnapAnimation) {
+                    isSnappingAnimationInProgress = false;
+                }
+                slidesWrapper.style.transition = 'none';
+
+                slidesWrapper.style.transform = `translateX(${translateX}px)`;
+                currentWrapperTranslateX = translateX;
+            }
+
+            const snapToNearestSlide = (currentVisualX, animateSnap = true) => {
+                if (!slidesWrapper || !slides || !slides.length) return;
+
+                let bestSnapIndex = 0;
+                let smallestDiff = Infinity;
+                let accumulatedNegativeOffset = 0;
+
+                for (let i = 0; i < slides.length; i++) {
+                    const slide = slides[i];
+                    const slideTargetX = accumulatedNegativeOffset;
+                    const diff = Math.abs(currentVisualX - slideTargetX);
+
+                    if (diff < smallestDiff) {
+                        smallestDiff = diff;
+                        bestSnapIndex = i;
+                    }
+                    accumulatedNegativeOffset -= slide.getBoundingClientRect().width;
+                    if (i < slides.length - 1) {
+                        accumulatedNegativeOffset -= (parseFloat(window.getComputedStyle(slide).marginRight) || 16);
+                    }
+                }
+
+                let targetSnapXCalculated = 0;
+                for(let i=0; i < bestSnapIndex; i++){
+                    targetSnapXCalculated -= slides[i].getBoundingClientRect().width;
+                    if (i < slides.length - 1) targetSnapXCalculated -= (parseFloat(window.getComputedStyle(slides[i]).marginRight) || 16);
+                }
+
+                targetSnapXCalculated = Math.max(maxTranslateX_boundary, Math.min(minTranslateX_boundary, targetSnapXCalculated));
+
+                if (animateSnap) {
+                    startSnapAnimation(targetSnapXCalculated);
+                } else {
+                    applyImmediateTransform(targetSnapXCalculated, true);
+                }
+            };
+
+            let isDown = false;
+            let isDragging = false;
+            let dragStartedDuringSnap = false;
+
+            function calculateVelocity() {
+                if (pointerHistory.length < 2) return 0;
+                const now = performance.now();
+                const relevantHistory = pointerHistory.filter(p => (now - p.time) < VELOCITY_CALC_TIME_WINDOW_MS);
+
+                if (relevantHistory.length < 2) {
+                    if (pointerHistory.length >= 2 && (now - pointerHistory[pointerHistory.length - 2].time < VELOCITY_CALC_TIME_WINDOW_MS * 2.5) ) {
+                        const lastPoint = pointerHistory[pointerHistory.length - 1];
+                        const secondLastPoint = pointerHistory[pointerHistory.length - 2];
+                        if (!lastPoint || !secondLastPoint) return 0;
+                        const deltaX = lastPoint.x - secondLastPoint.x;
+                        const deltaTime = lastPoint.time - secondLastPoint.time;
+                        if (deltaTime < 1) return 0;
+                        return deltaX / deltaTime;
+                    }
+                    return 0;
+                }
+
+                const firstPoint = relevantHistory[0];
+                const lastPoint = relevantHistory[relevantHistory.length - 1];
+                if (!firstPoint || !lastPoint) return 0;
+                const deltaX = lastPoint.x - firstPoint.x;
+                const deltaTime = lastPoint.time - firstPoint.time;
+
+                if (deltaTime < 1) return 0;
+                return deltaX / deltaTime;
+            }
+
+            const onPointerDown = (e) => {
+                if (e.type === 'mousedown' && e.button !== 0) {
+                    return;
+                }
+
+                if (e.target.tagName === 'IMG' && e.type === 'mousedown') {
+                    if (window.getComputedStyle(e.target).pointerEvents !== 'auto') {
+                        e.preventDefault();
+                    }
+                }
+
+                if ((e.target.closest('#ethereon-exclusive-sticker') && e.target.tagName === 'IMG') ||
+                    (e.target.closest('#ion-treasury-sticker') && e.target.tagName === 'IMG')) {
+                }
+
+
+                isDown = true;
+                isDragging = false;
+                dragStartedDuringSnap = false;
+
+                pointerDown_initialPointerX = e.touches ? e.touches[0].pageX : e.pageX;
+
+                touchStartTime = performance.now();
+                pointerHistory = [{ x: pointerDown_initialPointerX, time: touchStartTime }];
+            };
+
+            const onPointerMove = (e) => {
+                if (!isDown || !slidesWrapper) return;
+
+                const currentPointerX = e.touches ? e.touches[0].pageX : e.pageX;
+                const currentTime = performance.now();
+
+                let initialWalkDetection = currentPointerX - pointerDown_initialPointerX;
+
+                if (!isDragging) {
+                    pointerHistory.push({ x: currentPointerX, time: currentTime });
+                    if (pointerHistory.length > MAX_POINTER_HISTORY) {
+                        pointerHistory.shift();
+                    }
+                }
+
+                if (!isDragging && Math.abs(initialWalkDetection) > CLICK_THRESHOLD_DRAG) {
+                    isDragging = true;
+                    mainSlider.classList.add('grabbing');
+
+                    let actualCurrentSliderX_atDragStart;
+
+                    if (isSnappingAnimationInProgress) {
+                        actualCurrentSliderX_atDragStart = getTransformMatrix(slidesWrapper).m41;
+                        slidesWrapper.style.transition = 'none';
+                        isSnappingAnimationInProgress = false;
+                        dragStartedDuringSnap = true;
+                    } else {
+                        actualCurrentSliderX_atDragStart = getTransformMatrix(slidesWrapper).m41;
+                    }
+
+                    startWrapperTranslateX_onDrag = actualCurrentSliderX_atDragStart;
+                    startPointerX = currentPointerX;
+
+                    pointerHistory = [{ x: startPointerX, time: currentTime }];
+                }
+
+                if (isDragging) {
+                    let walk = currentPointerX - startPointerX;
+
+                    if (e.touches && e.type === 'touchmove') {
+                        const currentMoveY = e.touches[0].pageY;
+                        if (typeof onPointerMove.lastRecordedXForDelta === 'undefined' ||
+                            (e.pointerId && onPointerMove.pointerId !== e.pointerId) ||
+                            (isDragging && !onPointerMove.dragBaselineSetForVerticalScroll)
+                        ) {
+                            onPointerMove.lastRecordedXForDelta = startPointerX;
+                            onPointerMove.lastRecordedYForDelta = currentMoveY;
+                            if(e.pointerId) onPointerMove.pointerId = e.pointerId;
+                            if(isDragging) onPointerMove.dragBaselineSetForVerticalScroll = true;
+                        } else if (!isDragging) {
+                                delete onPointerMove.dragBaselineSetForVerticalScroll;
+                        }
+
+                        const deltaXAbs = Math.abs(currentPointerX - onPointerMove.lastRecordedXForDelta);
+                        const deltaYAbs = Math.abs(currentMoveY - onPointerMove.lastRecordedYForDelta);
+
+                        if (deltaXAbs > deltaYAbs && (Math.abs(walk) > CLICK_THRESHOLD_DRAG / 2) ) {
+                            e.preventDefault();
+                        }
+                        if (currentPointerX !== onPointerMove.lastRecordedXForDelta || currentMoveY !== onPointerMove.lastRecordedYForDelta) {
+                            onPointerMove.lastRecordedXForDelta = currentPointerX;
+                            onPointerMove.lastRecordedYForDelta = currentMoveY;
+                        }
+                    } else if (!e.touches) {
+                           delete onPointerMove.lastRecordedXForDelta;
+                           delete onPointerMove.lastRecordedYForDelta;
+                           delete onPointerMove.dragBaselineSetForVerticalScroll;
+                    }
+
+                    if (walk !== 0 && (pointerHistory.length === 0 || pointerHistory[pointerHistory.length-1].x !== currentPointerX) ) {
+                        pointerHistory.push({ x: currentPointerX, time: currentTime });
+                        if (pointerHistory.length > MAX_POINTER_HISTORY) {
+                            pointerHistory.shift();
+                        }
+                    }
+
+                    let newVisualTranslateX = startWrapperTranslateX_onDrag + walk;
+
+                    if (newVisualTranslateX > minTranslateX_boundary) {
+                        const overscroll = newVisualTranslateX - minTranslateX_boundary;
+                        newVisualTranslateX = minTranslateX_boundary + overscroll / OVERSCROLL_FRICTION;
+                    } else if (newVisualTranslateX < maxTranslateX_boundary) {
+                        const overscroll = newVisualTranslateX - maxTranslateX_boundary;
+                        newVisualTranslateX = maxTranslateX_boundary + overscroll / OVERSCROLL_FRICTION;
+                    }
+                    applyImmediateTransform(newVisualTranslateX, true);
+                }
+            };
+
+            const onPointerUp = () => {
+                if (!isDown || !slidesWrapper) return;
+
+                const touchEndTime = performance.now();
+                const touchDuration = touchEndTime - touchStartTime;
+                const wasDraggingFlag = isDragging;
+
+                isDown = false;
+                isDragging = false;
+                mainSlider.classList.remove('grabbing');
+
+                delete onPointerMove.lastRecordedXForDelta;
+                delete onPointerMove.lastRecordedYForDelta;
+                delete onPointerMove.dragBaselineSetForVerticalScroll;
+
+                const finalVisualTranslateX = getTransformMatrix(slidesWrapper).m41;
+                const velocity = calculateVelocity();
+
+                if (Math.abs(velocity) > FLICK_VELOCITY_THRESHOLD && touchDuration < LONG_PRESS_THRESHOLD_MS) {
+                    const scrollAmount = velocity * INERTIA_MULTIPLIER;
+                    let targetSnapDecisionPoint = finalVisualTranslateX + scrollAmount;
+                    snapToNearestSlide(targetSnapDecisionPoint, true);
+                }
+                else if (wasDraggingFlag) {
+                    if (finalVisualTranslateX > minTranslateX_boundary) {
+                        startSnapAnimation(minTranslateX_boundary);
+                    } else if (finalVisualTranslateX < maxTranslateX_boundary) {
+                        startSnapAnimation(maxTranslateX_boundary);
+                    } else {
+                        snapToNearestSlide(finalVisualTranslateX, true);
+                    }
+                }
+                else {
+                    if (!isSnappingAnimationInProgress) {
+                       currentWrapperTranslateX = finalVisualTranslateX;
+                    }
+                }
+                pointerHistory = [];
+            };
+
+            const onSnapAnimationEnd = (event) => {
+                if (!slidesWrapper || event.target !== slidesWrapper || event.propertyName !== 'transform') {
+                    return;
+                }
+                const currentPos = getTransformMatrix(slidesWrapper).m41;
+                if (Math.abs(currentPos - snapTargetX) < 1) {
+                    isSnappingAnimationInProgress = false;
+                } else if (isSnappingAnimationInProgress) {
+                    if(Math.abs(currentPos - currentWrapperTranslateX) < 1) {
+                         isSnappingAnimationInProgress = false;
+                    }
+                }
+            };
+
+            mainSlider.addEventListener('mousedown', onPointerDown);
+            mainSlider.addEventListener('touchstart', onPointerDown, { passive: false });
+
+            window.addEventListener('mousemove', onPointerMove);
+            window.addEventListener('touchmove', onPointerMove, { passive: false });
+
+            window.addEventListener('mouseup', onPointerUp);
+            window.addEventListener('touchend', onPointerUp);
+            window.addEventListener('touchcancel', onPointerUp);
+
+            initializeSlider();
+            window.addEventListener('resize', window.updateSliderDimensionsAndPosition);
+
+            const ethereonStickerSlide = document.getElementById('ethereon-exclusive-sticker');
+            if (ethereonStickerSlide) {
+                ethereonStickerSlide.addEventListener('click', (event) => {
+                    if (isSnappingAnimationInProgress || dragStartedDuringSnap || isDragging ) {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        return;
+                    }
+                    if (event.target.tagName === 'IMG' || event.target === ethereonStickerSlide) {
+                        window.location.href = 'Ethreon Exclusive/index.html';
+                    }
+                });
+            }
+
+            const ionTreasuryStickerSlide = document.getElementById('ion-treasury-sticker');
+            if (ionTreasuryStickerSlide) {
+                ionTreasuryStickerSlide.addEventListener('click', (event) => {
+                    if (isSnappingAnimationInProgress || dragStartedDuringSnap || isDragging ) {
+                        event.stopPropagation();
+                        event.preventDefault();
+                        return;
+                    }
+                    if (event.target.tagName === 'IMG' || event.target === ionTreasuryStickerSlide) {
+                        window.location.href = 'Ion Treasury/index.html';
+                    }
+                });
+            }
+
+        } else {
+            console.error("Slider element #featured-sticker-container not found.");
+        }
+
+        let initialContentId = null;
+        let actualInitialButton = null;
+        const initialActiveButton = document.querySelector('.bottom-nav button.active');
+
+        if (initialActiveButton) {
+            const onclickString = initialActiveButton.getAttribute('onclick');
+            if (onclickString && onclickString.includes("showContent")) {
+                const match = onclickString.match(/showContent\('([^']*)'/);
+                if (match && match[1]) {
+                    initialContentId = match[1];
+                    actualInitialButton = initialActiveButton;
+                }
+            }
+        }
+
+        if (!initialContentId) {
+            const firstButton = document.querySelector('.bottom-nav button[onclick*="showContent"]');
+            if (firstButton) {
+                const onclickString = firstButton.getAttribute('onclick');
+                const match = onclickString.match(/showContent\('([^']*)'/);
+                if (match && match[1]) {
+                    initialContentId = match[1];
+                    actualInitialButton = firstButton;
+                }
+            }
+        }
+
+        if (initialContentId && !document.getElementById(initialContentId)) {
+            initialContentId = 'nfts-content';
+            actualInitialButton = document.querySelector('.bottom-nav button[onclick*="nfts-content"]');
+        }
+
+
+        if (initialContentId && actualInitialButton) {
+            const switchLogicForInitialLoad = () => {
+                closeAllPopups();
+                const contentSections = document.querySelectorAll('.page-content');
+                const buttons = document.querySelectorAll('.bottom-nav button');
+
+                contentSections.forEach(section => section.classList.remove('active'));
+                buttons.forEach(button => button.classList.remove('active'));
+
+                const targetContent = document.getElementById(initialContentId);
+                if (targetContent) targetContent.classList.add('active');
+                else {
+                    const firstPageContent = document.querySelector('.page-content');
+                    if (firstPageContent) firstPageContent.classList.add('active');
+                }
+                if (actualInitialButton) actualInitialButton.classList.add('active');
+
+
+                if (initialContentId === 'nfts-content' && typeof window.updateSliderDimensionsAndPosition === 'function') {
+                   requestAnimationFrame(() => { requestAnimationFrame(() => { window.updateSliderDimensionsAndPosition(); }); });
+                }
+
+                const mainContentArea = document.querySelector('.content');
+                if (mainContentArea) {
+                    mainContentArea.scrollTop = 0;
+                }
+                document.body.style.overflow = 'hidden';
+            };
+            triggerPageTransition(switchLogicForInitialLoad);
+        } else {
+            const nftsContent = document.getElementById('nfts-content');
+            const nftsButton = document.querySelector('.bottom-nav button[onclick*="nfts-content"]');
+            if (nftsContent && nftsButton) {
+               const fallbackSwitchLogic = () => {
+                    closeAllPopups();
+                    document.querySelectorAll('.page-content').forEach(s => s.classList.remove('active'));
+                    document.querySelectorAll('.bottom-nav button').forEach(b => b.classList.remove('active'));
+                    nftsContent.classList.add('active');
+                    nftsButton.classList.add('active');
+                    if (typeof window.updateSliderDimensionsAndPosition === 'function') {
+                        requestAnimationFrame(() => { requestAnimationFrame(() => { window.updateSliderDimensionsAndPosition(); }); });
+                    }
+                    const mainContentArea = document.querySelector('.content');
+                    if (mainContentArea) mainContentArea.scrollTop = 0;
+                    document.body.style.overflow = 'hidden';
+                };
+                triggerPageTransition(fallbackSwitchLogic);
+            }
+        }
+    });
+    </script>
+</body>
+</html>

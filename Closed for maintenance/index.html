@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ethereon Shop Maintenance</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        user-select: none;
+    }
+    html {
+      height: 100vh;
+      overflow: hidden !important;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      font-family: "Segoe UI", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #ffffff;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .content-wrapper {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter 0s;
+      filter: blur(4px); 
+    }
+
+    .page-content {
+        display: none;
+        width: 100%;
+        height: 100%;
+    }
+    .page-content.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .container {
+      max-width: 90%;
+    }
+    img {
+      max-width: 150px;
+      margin-bottom: 16px;
+      user-select: none;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 400;
+      margin: 0;
+      color: #000000;
+    }
+    p {
+      font-size: 20px;
+      font-weight: 400;
+      margin-top: 0px;
+      color: #000000;
+    }
+
+    #page-transition-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background-color: #ffffff;
+        z-index: 9999;
+        opacity: 1; 
+        pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="maintenance-page-content" class="content-wrapper page-content">
+    <div class="container">
+      <img src="https://res.cloudinary.com/dz6vzivzp/image/upload/v1748475308/Ion_zfbmwr.png" alt="Ethereon Logo" />
+      <h1>Ethereon Shop is currently closed for maintenance!</h1>
+      <p>We’ll be back online shortly.</p>
+    </div>
+  </div>
+
+  <div id="page-transition-overlay"></div>
+
+  <script>
+    let isInitialPageLoad = true; 
+
+    function triggerPageTransition(callbackToExecuteDuringTransition) {
+        const transitionOverlay = document.getElementById('page-transition-overlay');
+        const mainContentArea = document.querySelector('#maintenance-page-content'); 
+
+        if (!transitionOverlay || !mainContentArea) {
+            if (callbackToExecuteDuringTransition && typeof callbackToExecuteDuringTransition === 'function') {
+                callbackToExecuteDuringTransition();
+            }
+            if (isInitialPageLoad) {
+                isInitialPageLoad = false;
+            }
+            return;
+        }
+
+        if (isInitialPageLoad) {
+            if (callbackToExecuteDuringTransition && typeof callbackToExecuteDuringTransition === 'function') {
+                callbackToExecuteDuringTransition();
+            }
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (transitionOverlay) {
+                        transitionOverlay.style.transition = 'opacity 0.15s ease-out'; 
+                        transitionOverlay.style.opacity = '0';
+                    }
+                    setTimeout(() => {
+                        if (mainContentArea) {
+                            mainContentArea.style.transition = 'filter 0.15s ease-out'; 
+                            mainContentArea.style.filter = 'none';
+                        }
+                    }, 0); 
+                });
+            });
+            isInitialPageLoad = false;
+        } else {
+            
+            mainContentArea.style.transition = 'filter 0s';
+            mainContentArea.style.filter = 'blur(4px)'; 
+            transitionOverlay.style.transition = 'none';
+            transitionOverlay.style.opacity = '1';
+
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    if (callbackToExecuteDuringTransition && typeof callbackToExecuteDuringTransition === 'function') {
+                        callbackToExecuteDuringTransition();
+                    }
+                    transitionOverlay.style.transition = 'opacity 0.15s ease-out'; 
+                    transitionOverlay.style.opacity = '0';
+                    setTimeout(() => {
+                        if (mainContentArea) {
+                            mainContentArea.style.transition = 'filter 0s ease-out'; 
+                            mainContentArea.style.filter = 'none';
+                        }
+                    }, 0); 
+                });
+            });
+        }
+    }
+
+    function showContent(contentId) {
+        const targetContent = document.getElementById(contentId);
+
+        if (targetContent && targetContent.classList.contains('active') && !isInitialPageLoad) {
+            return;
+        }
+
+        const switchLogic = () => {
+            document.querySelectorAll('.page-content').forEach(section => {
+                if (section.id !== contentId) {
+                    section.classList.remove('active');
+                }
+            });
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+        };
+
+        triggerPageTransition(switchLogic);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const tg = window.Telegram && window.Telegram.WebApp;
+        if (tg) {
+            try {
+                tg.ready();
+                tg.expand();
+            } catch (e) { 
+                
+            }
+        }
+        
+        showContent('maintenance-page-content');
+    });
+  </script>
+</body>
+</html>
